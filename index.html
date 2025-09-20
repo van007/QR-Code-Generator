@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QR Code Generator</title>
+    <meta name="description" content="Generate QR codes for text, URLs, emails, phone numbers, SMS, and WiFi credentials">
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#007AFF">
+    <link rel="apple-touch-icon" href="/assets/icons/icon-192x192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="QR Generator">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="header-content">
+                <div class="header-brand">
+                    <img src="assets/logo.png" alt="QR Code Generator Logo" class="app-logo">
+                    <h1 class="app-title">QR Code Generator</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="install-button hidden" id="installButton" aria-label="Install app">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        <span class="install-button-text">Install App</span>
+                    </button>
+                    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+                        <svg class="sun-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="5"></circle>
+                            <line x1="12" y1="1" x2="12" y2="3"></line>
+                            <line x1="12" y1="21" x2="12" y2="23"></line>
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                            <line x1="1" y1="12" x2="3" y2="12"></line>
+                            <line x1="21" y1="12" x2="23" y2="12"></line>
+                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                        </svg>
+                        <svg class="moon-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="sidebar-nav">
+                <h2 class="sidebar-title">QR Type</h2>
+                <nav class="type-menu" id="typeMenu">
+                    <button class="type-menu-item active" data-type="text">
+                        <img src="assets/ui-icons/text.svg" alt="Text icon" class="type-icon">
+                        <span>Plain Text</span>
+                    </button>
+                    <button class="type-menu-item" data-type="url">
+                        <img src="assets/ui-icons/url.svg" alt="URL icon" class="type-icon">
+                        <span>URL</span>
+                    </button>
+                    <button class="type-menu-item" data-type="email">
+                        <img src="assets/ui-icons/email.svg" alt="Email icon" class="type-icon">
+                        <span>Email</span>
+                    </button>
+                    <button class="type-menu-item" data-type="phone">
+                        <img src="assets/ui-icons/phone.svg" alt="Phone icon" class="type-icon">
+                        <span>Phone</span>
+                    </button>
+                    <button class="type-menu-item" data-type="sms">
+                        <img src="assets/ui-icons/sms.svg" alt="SMS icon" class="type-icon">
+                        <span>SMS</span>
+                    </button>
+                    <button class="type-menu-item" data-type="whatsapp">
+                        <img src="assets/ui-icons/whatsapp.svg" alt="WhatsApp icon" class="type-icon">
+                        <span>WhatsApp</span>
+                    </button>
+                    <button class="type-menu-item" data-type="wifi">
+                        <img src="assets/ui-icons/wifi.svg" alt="WiFi icon" class="type-icon">
+                        <span>WiFi</span>
+                    </button>
+                    <button class="type-menu-item" data-type="vcard">
+                        <img src="assets/ui-icons/vcard.svg" alt="Business Card icon" class="type-icon">
+                        <span>Business Card</span>
+                    </button>
+                    <button class="type-menu-item" data-type="maps">
+                        <img src="assets/ui-icons/maps.svg" alt="Maps icon" class="type-icon">
+                        <span>Maps</span>
+                    </button>
+                </nav>
+                <select id="qrType" class="mobile-type-select">
+                    <option value="text">Plain Text</option>
+                    <option value="url">URL</option>
+                    <option value="email">Email</option>
+                    <option value="phone">Phone</option>
+                    <option value="sms">SMS</option>
+                    <option value="whatsapp">WhatsApp</option>
+                    <option value="wifi">WiFi</option>
+                    <option value="vcard">Business Card (vCard)</option>
+                    <option value="maps">Maps</option>
+                </select>
+            </div>
+
+            <div class="content-column">
+                <div class="input-panel card">
+                    <h2 class="section-title">Input Data</h2>
+                    
+                    <div id="inputFields" class="input-fields">
+                        <div class="form-group" data-type="text">
+                            <label for="textInput" class="form-label">Text Content</label>
+                            <textarea id="textInput" class="form-textarea" placeholder="Enter your text here..." rows="4"></textarea>
+                            <div class="form-hint">Enter any text to encode. The QR code will display this text when scanned.</div>
+                        </div>
+
+                        <div class="form-group hidden" data-type="url">
+                            <label for="urlInput" class="form-label">URL</label>
+                            <input type="url" id="urlInput" class="form-input" placeholder="https://example.com">
+                            <div class="form-hint">Enter a website URL. The QR code will open this website when scanned.</div>
+                        </div>
+
+                        <div class="form-group hidden" data-type="email">
+                            <label for="emailAddress" class="form-label">Email Address</label>
+                            <input type="email" id="emailAddress" class="form-input" placeholder="email@example.com">
+                            <div class="form-hint">Create a QR code that opens an email draft with pre-filled recipient, subject, and message.</div>
+                            <label for="emailSubject" class="form-label">Subject (Optional)</label>
+                            <input type="text" id="emailSubject" class="form-input" placeholder="Email subject">
+                            <label for="emailBody" class="form-label">Message (Optional)</label>
+                            <textarea id="emailBody" class="form-textarea" placeholder="Email message" rows="3"></textarea>
+                        </div>
+
+                        <div class="form-group hidden" data-type="phone">
+                            <label for="phoneNumber" class="form-label">Phone Number</label>
+                            <input type="tel" id="phoneNumber" class="form-input" placeholder="+1234567890">
+                            <div class="form-hint">Enter a phone number with country code. The QR code will initiate a phone call when scanned.</div>
+                        </div>
+
+                        <div class="form-group hidden" data-type="sms">
+                            <label for="smsNumber" class="form-label">Phone Number</label>
+                            <input type="tel" id="smsNumber" class="form-input" placeholder="+1234567890">
+                            <div class="form-hint">Create a QR code that opens the SMS app with a pre-filled number and message.</div>
+                            <label for="smsMessage" class="form-label">Message</label>
+                            <textarea id="smsMessage" class="form-textarea" placeholder="SMS message" rows="3"></textarea>
+                        </div>
+
+                        <div class="form-group hidden" data-type="whatsapp">
+                            <label for="whatsappNumber" class="form-label">Phone Number (with country code)</label>
+                            <input type="tel" id="whatsappNumber" class="form-input" placeholder="+1234567890">
+                            <div class="form-hint">Enter a WhatsApp number with country code. The QR code will open a WhatsApp chat when scanned.</div>
+                            <label for="whatsappMessage" class="form-label">Message (Optional)</label>
+                            <textarea id="whatsappMessage" class="form-textarea" placeholder="Pre-filled message" rows="3"></textarea>
+                        </div>
+
+                        <div class="form-group hidden" data-type="wifi">
+                            <label for="wifiSSID" class="form-label">Network Name (SSID)</label>
+                            <input type="text" id="wifiSSID" class="form-input" placeholder="WiFi Network Name">
+                            <div class="form-hint">Share WiFi credentials securely. Scanning will automatically connect to the network on supported devices.</div>
+                            <label for="wifiPassword" class="form-label">Password</label>
+                            <input type="password" id="wifiPassword" class="form-input" placeholder="WiFi Password">
+                            <label for="wifiSecurity" class="form-label">Security Type</label>
+                            <select id="wifiSecurity" class="form-select">
+                                <option value="WPA">WPA/WPA2</option>
+                                <option value="WEP">WEP</option>
+                                <option value="nopass">No Password</option>
+                            </select>
+                            <div class="form-checkbox">
+                                <input type="checkbox" id="wifiHidden">
+                                <label for="wifiHidden">Hidden Network</label>
+                            </div>
+                        </div>
+
+                        <div class="form-group hidden" data-type="maps">
+                            <label for="mapsLink" class="form-label">Map Link</label>
+                            <input type="url" id="mapsLink" class="form-input" placeholder="Paste Google Maps or Apple Maps link">
+                            <div class="form-hint">Paste a link from Google Maps or Apple Maps. When scanned, the QR code will open the location in the user's map application.</div>
+                        </div>
+
+                        <div class="form-group hidden" data-type="vcard">
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label for="vcardName" class="form-label">Your Name <span style="color: var(--error-color);">*</span></label>
+                                    <input type="text" id="vcardName" class="form-input" placeholder="John Doe" required>
+                                    <div class="form-hint">Create a digital business card. Scanning will add the contact to the user's address book.</div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-col-2">
+                                    <label for="vcardMobile" class="form-label">Mobile <span style="color: var(--error-color);">*</span></label>
+                                    <input type="tel" id="vcardMobile" class="form-input" placeholder="+1234567890" required>
+                                </div>
+                                <div class="form-col-2">
+                                    <label for="vcardEmail" class="form-label">Email <span style="color: var(--error-color);">*</span></label>
+                                    <input type="email" id="vcardEmail" class="form-input" placeholder="email@example.com" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-col-2">
+                                    <label for="vcardCompany" class="form-label">Company</label>
+                                    <input type="text" id="vcardCompany" class="form-input" placeholder="Company Name">
+                                </div>
+                                <div class="form-col-2">
+                                    <label for="vcardJobTitle" class="form-label">Job Title</label>
+                                    <input type="text" id="vcardJobTitle" class="form-input" placeholder="Software Engineer">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-col-3">
+                                    <label for="vcardStreet" class="form-label">Street</label>
+                                    <input type="text" id="vcardStreet" class="form-input" placeholder="123 Main St">
+                                </div>
+                                <div class="form-col-3">
+                                    <label for="vcardCity" class="form-label">City</label>
+                                    <input type="text" id="vcardCity" class="form-input" placeholder="New York">
+                                </div>
+                                <div class="form-col-3">
+                                    <label for="vcardZip" class="form-label">ZIP</label>
+                                    <input type="text" id="vcardZip" class="form-input" placeholder="10001">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-col-2">
+                                    <label for="vcardState" class="form-label">State</label>
+                                    <input type="text" id="vcardState" class="form-input" placeholder="NY">
+                                </div>
+                                <div class="form-col-2">
+                                    <label for="vcardCountry" class="form-label">Country</label>
+                                    <input type="text" id="vcardCountry" class="form-input" placeholder="USA">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label for="vcardWebsite" class="form-label">Website</label>
+                                    <input type="url" id="vcardWebsite" class="form-input" placeholder="https://example.com">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="customization-panel card">
+                    <h2 class="section-title">Customization</h2>
+                    
+                    <div class="form-row">
+                        <div class="form-col-2">
+                            <label for="qrSize" class="form-label">Size</label>
+                            <select id="qrSize" class="form-select">
+                                <option value="128">128px</option>
+                                <option value="256" selected>256px</option>
+                                <option value="384">384px</option>
+                                <option value="512">512px</option>
+                            </select>
+                        </div>
+                        <div class="form-col-2">
+                            <label for="moduleShape" class="form-label">Module Shape</label>
+                            <select id="moduleShape" class="form-select">
+                                <option value="square" selected>Square</option>
+                                <option value="rounded">Rounded</option>
+                                <option value="circle">Circle</option>
+                                <option value="diamond">Diamond</option>
+                                <option value="dots">Dots</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-col-2">
+                            <label for="colorDark" class="form-label">Foreground Color</label>
+                            <div class="color-input-wrapper">
+                                <input type="color" id="colorDark" class="form-color" value="#000000">
+                                <input type="text" id="colorDarkHex" class="form-input color-hex" value="#000000">
+                            </div>
+                        </div>
+                        <div class="form-col-2">
+                            <label for="colorLight" class="form-label">Background Color</label>
+                            <div class="color-input-wrapper">
+                                <input type="color" id="colorLight" class="form-color" value="#ffffff">
+                                <input type="text" id="colorLightHex" class="form-input color-hex" value="#ffffff">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-col-2">
+                            <label for="margin" class="form-label">Margin</label>
+                            <select id="margin" class="form-select">
+                                <option value="0">0 modules</option>
+                                <option value="2">2 modules</option>
+                                <option value="4" selected>4 modules</option>
+                                <option value="6">6 modules</option>
+                                <option value="8">8 modules</option>
+                                <option value="10">10 modules</option>
+                            </select>
+                        </div>
+                        <div class="form-col-2">
+                            <label for="errorCorrection" class="form-label">Error Correction Level</label>
+                            <select id="errorCorrection" class="form-select">
+                                <option value="L">Low (7%)</option>
+                                <option value="M" selected>Medium (15%)</option>
+                                <option value="Q">Quartile (25%)</option>
+                                <option value="H">High (30%)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="frameOption" class="form-label">Frame</label>
+                        <select id="frameOption" class="form-select">
+                            <option value="none" selected>None</option>
+                            <option value="auto">Auto Frame</option>
+                            <option value="custom">Custom Text</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group hidden" id="autoFrameOptions">
+                        <div class="frame-options-container">
+                            <!-- Frame options will be dynamically inserted here -->
+                        </div>
+                    </div>
+
+                    <div class="form-group hidden" id="customFrameTextGroup">
+                        <label for="customFrameText" class="form-label">Frame Text</label>
+                        <input type="text" id="customFrameText" class="form-input" placeholder="Enter custom frame text" maxlength="30">
+                    </div>
+                </div>
+            </div>
+
+            <div class="preview-column">
+                <div class="preview-panel card">
+                    <h2 class="section-title">Preview</h2>
+                    <div id="qrPreview" class="qr-preview">
+                        <div class="preview-placeholder">
+                            <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                                <rect x="14" y="14" width="7" height="7"></rect>
+                                <rect x="9" y="9" width="6" height="6"></rect>
+                            </svg>
+                            <p>Your QR code will appear here</p>
+                        </div>
+                        <div id="qrcode" class="qr-code-container"></div>
+                    </div>
+                    
+                    <div id="actionButtons" class="action-buttons hidden">
+                        <button id="downloadPNG" class="btn btn-secondary">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            Download PNG
+                        </button>
+                        <button id="downloadSVG" class="btn btn-secondary">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            Download SVG
+                        </button>
+                        <button id="copyImage" class="btn btn-secondary">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                            Copy Image
+                        </button>
+                    </div>
+                </div>
+
+                <div class="history-panel card">
+                    <div class="history-header">
+                        <h2 class="section-title">History</h2>
+                        <button id="clearHistory" class="btn-text">Clear All</button>
+                    </div>
+                    <div id="historyList" class="history-list">
+                        <div class="history-empty">
+                            <p>No QR codes generated yet</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div id="notification" class="notification">
+            <span class="notification-message"></span>
+        </div>
+    </div>
+
+    <div class="sticky-action-container">
+        <button id="generateBtn" class="btn btn-primary">Generate QR Code</button>
+    </div>
+
+    <script src="js/app.js" type="module"></script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+{
+  "name": "QR Code Generator",
+  "short_name": "QR Generator",
+  "description": "Generate QR codes for text, URLs, emails, phone numbers, and more",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#007AFF",
+  "background_color": "#ffffff",
+  "orientation": "any",
+  "categories": ["utilities", "productivity"],
+  "icons": [
+    {
+      "src": "/assets/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Generate Text QR",
+      "short_name": "Text QR",
+      "description": "Generate a text QR code",
+      "url": "/?type=text",
+      "icons": [{ "src": "/assets/ui-icons/text.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Generate URL QR",
+      "short_name": "URL QR",
+      "description": "Generate a URL QR code",
+      "url": "/?type=url",
+      "icons": [{ "src": "/assets/ui-icons/url.svg", "sizes": "96x96" }]
+    }
+  ]
+}
