@@ -100,6 +100,58 @@ npx serve
 
 > **Note:** A web server is required because the app uses ES6 modules, which are blocked by CORS policy when opening files directly due to browser security restrictions.
 
+## How to Generate QR Codes
+
+### Step-by-Step Guide
+
+#### 1. Select QR Type
+Choose from various QR code types using the sidebar navigation
+![Select QR Type](assets/Screenshots/1.select-qr-type.png)
+
+#### 2. Customize Size
+Adjust the QR code size from 128px to 512px
+![Customize Size](assets/Screenshots/2.customize-size.png)
+
+#### 3. Customize Module Shape
+Choose between Square, Rounded, Circle, Diamond, or Dots shapes
+![Customize Module Shape](assets/Screenshots/3.customize-module-shape.png)
+
+#### 4. Customize Colors
+Set custom foreground and background colors
+![Customize Colors](assets/Screenshots/4.customize-colours.png)
+
+#### 5. Adjust Margin
+Control the white space around your QR code
+![Adjust Margin](assets/Screenshots/5.adjust-margin.png)
+
+#### 6. Select Frame
+Add professional frames to your QR codes
+![Select Frame](assets/Screenshots/6.select-frame.png)
+
+#### 7. Auto Frame - Standard Text Option
+Display generic action labels on frames
+![Auto Frame Option 1](assets/Screenshots/7.auto-frame-option01.png)
+
+#### 8. Auto Frame - Contextual Data Option
+Show actual content (URL, email, phone) on frames
+![Auto Frame Option 2](assets/Screenshots/8.auto-frame-option02.png)
+
+#### 9. Custom Text Frame
+Add your own custom text to frames (up to 30 characters)
+![Custom Text Frame](assets/Screenshots/9.custom-text-frame.png)
+
+### Additional Features
+
+#### Install as Progressive Web App
+Install the app for offline use and native-like experience
+![Install App Menu](assets/Screenshots/install-app-01-menu.png)
+![Install App Confirmation](assets/Screenshots/install-app-02-confirmation.png)
+
+#### Theme Options
+Switch between light and dark themes
+![Light Theme](assets/Screenshots/theme-01-light.png)
+![Dark Theme](assets/Screenshots/theme-02-dark.png)
+
 ## Project Structure
 
 ```
