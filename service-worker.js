@@ -1,29 +1,29 @@
 const CACHE_NAME = 'qr-generator-v0.1.0';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/css/styles.css',
-  '/css/responsive.css',
-  '/js/app.js',
-  '/js/qrGenerator.js',
-  '/js/uiController.js',
-  '/js/downloadManager.js',
-  '/js/historyManager.js',
-  '/js/themeManager.js',
-  '/assets/logo.png',
+  '/QR-Code-Generator/',
+  '/QR-Code-Generator/index.html',
+  '/QR-Code-Generator/css/styles.css',
+  '/QR-Code-Generator/css/responsive.css',
+  '/QR-Code-Generator/js/app.js',
+  '/QR-Code-Generator/js/qrGenerator.js',
+  '/QR-Code-Generator/js/uiController.js',
+  '/QR-Code-Generator/js/downloadManager.js',
+  '/QR-Code-Generator/js/historyManager.js',
+  '/QR-Code-Generator/js/themeManager.js',
+  '/QR-Code-Generator/assets/logo.png',
   // UI icons
-  '/assets/ui-icons/text.svg',
-  '/assets/ui-icons/url.svg',
-  '/assets/ui-icons/email.svg',
-  '/assets/ui-icons/phone.svg',
-  '/assets/ui-icons/sms.svg',
-  '/assets/ui-icons/whatsapp.svg',
-  '/assets/ui-icons/wifi.svg',
-  '/assets/ui-icons/vcard.svg',
-  '/assets/ui-icons/maps.svg',
+  '/QR-Code-Generator/assets/ui-icons/text.svg',
+  '/QR-Code-Generator/assets/ui-icons/url.svg',
+  '/QR-Code-Generator/assets/ui-icons/email.svg',
+  '/QR-Code-Generator/assets/ui-icons/phone.svg',
+  '/QR-Code-Generator/assets/ui-icons/sms.svg',
+  '/QR-Code-Generator/assets/ui-icons/whatsapp.svg',
+  '/QR-Code-Generator/assets/ui-icons/wifi.svg',
+  '/QR-Code-Generator/assets/ui-icons/vcard.svg',
+  '/QR-Code-Generator/assets/ui-icons/maps.svg',
   // PWA icons
-  '/assets/icons/icon-192x192.png',
-  '/assets/icons/icon-512x512.png',
+  '/QR-Code-Generator/assets/icons/icon-192x192.png',
+  '/QR-Code-Generator/assets/icons/icon-512x512.png',
   // External dependencies
   'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js',
   'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap'
@@ -90,7 +90,7 @@ self.addEventListener('fetch', event => {
       }).catch(() => {
         // Network request failed, try to get offline page
         if (event.request.destination === 'document') {
-          return caches.match('/offline.html');
+          return caches.match('/QR-Code-Generator/offline.html');
         }
       });
     })

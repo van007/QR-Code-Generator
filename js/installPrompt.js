@@ -60,7 +60,7 @@ export class InstallPromptManager {
         banner.className = 'pwa-install-banner';
         banner.innerHTML = `
             <div class="install-banner-content">
-                <img src="/assets/logo.png" alt="QR Generator" class="install-banner-icon">
+                <img src="/QR-Code-Generator/assets/logo.png" alt="QR Generator" class="install-banner-icon">
                 <div class="install-banner-text">
                     <h3>Install QR Generator</h3>
                     <p>Add to your home screen for quick access and offline use</p>

@@ -7,9 +7,9 @@
     <meta name="description" content="Generate QR codes for text, URLs, emails, phone numbers, SMS, and WiFi credentials">
     
     <!-- PWA Meta Tags -->
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="/QR-Code-Generator/manifest.json">
     <meta name="theme-color" content="#007AFF">
-    <link rel="apple-touch-icon" href="/assets/icons/icon-192x192.png">
+    <link rel="apple-touch-icon" href="/QR-Code-Generator/assets/icons/icon-192x192.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="QR Generator">
@@ -18,8 +18,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="/QR-Code-Generator/css/styles.css">
+    <link rel="stylesheet" href="/QR-Code-Generator/css/responsive.css">
     
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 </head>
@@ -28,7 +28,7 @@
         <header class="app-header">
             <div class="header-content">
                 <div class="header-brand">
-                    <img src="assets/logo.png" alt="QR Code Generator Logo" class="app-logo">
+                    <img src="/QR-Code-Generator/assets/logo.png" alt="QR Code Generator Logo" class="app-logo">
                     <h1 class="app-title">QR Code Generator</h1>
                 </div>
                 <div class="header-actions">
@@ -65,39 +65,39 @@
                 <h2 class="sidebar-title">QR Type</h2>
                 <nav class="type-menu" id="typeMenu">
                     <button class="type-menu-item active" data-type="text">
-                        <img src="assets/ui-icons/text.svg" alt="Text icon" class="type-icon">
+                        <img src="/QR-Code-Generator/assets/ui-icons/text.svg" alt="Text icon" class="type-icon">
                         <span>Plain Text</span>
                     </button>
                     <button class="type-menu-item" data-type="url">
-                        <img src="assets/ui-icons/url.svg" alt="URL icon" class="type-icon">
+                        <img src="/QR-Code-Generator/assets/ui-icons/url.svg" alt="URL icon" class="type-icon">
                         <span>URL</span>
                     </button>
                     <button class="type-menu-item" data-type="email">
-                        <img src="assets/ui-icons/email.svg" alt="Email icon" class="type-icon">
+                        <img src="/QR-Code-Generator/assets/ui-icons/email.svg" alt="Email icon" class="type-icon">
                         <span>Email</span>
                     </button>
                     <button class="type-menu-item" data-type="phone">
-                        <img src="assets/ui-icons/phone.svg" alt="Phone icon" class="type-icon">
+                        <img src="/QR-Code-Generator/assets/ui-icons/phone.svg" alt="Phone icon" class="type-icon">
                         <span>Phone</span>
                     </button>
                     <button class="type-menu-item" data-type="sms">
-                        <img src="assets/ui-icons/sms.svg" alt="SMS icon" class="type-icon">
+                        <img src="/QR-Code-Generator/assets/ui-icons/sms.svg" alt="SMS icon" class="type-icon">
                         <span>SMS</span>
                     </button>
                     <button class="type-menu-item" data-type="whatsapp">
-                        <img src="assets/ui-icons/whatsapp.svg" alt="WhatsApp icon" class="type-icon">
+                        <img src="/QR-Code-Generator/assets/ui-icons/whatsapp.svg" alt="WhatsApp icon" class="type-icon">
                         <span>WhatsApp</span>
                     </button>
                     <button class="type-menu-item" data-type="wifi">
-                        <img src="assets/ui-icons/wifi.svg" alt="WiFi icon" class="type-icon">
+                        <img src="/QR-Code-Generator/assets/ui-icons/wifi.svg" alt="WiFi icon" class="type-icon">
                         <span>WiFi</span>
                     </button>
                     <button class="type-menu-item" data-type="vcard">
-                        <img src="assets/ui-icons/vcard.svg" alt="Business Card icon" class="type-icon">
+                        <img src="/QR-Code-Generator/assets/ui-icons/vcard.svg" alt="Business Card icon" class="type-icon">
                         <span>Business Card</span>
                     </button>
                     <button class="type-menu-item" data-type="maps">
-                        <img src="assets/ui-icons/maps.svg" alt="Maps icon" class="type-icon">
+                        <img src="/QR-Code-Generator/assets/ui-icons/maps.svg" alt="Maps icon" class="type-icon">
                         <span>Maps</span>
                     </button>
                 </nav>
@@ -403,6 +403,6 @@
         <button id="generateBtn" class="btn btn-primary">Generate QR Code</button>
     </div>
 
-    <script src="js/app.js" type="module"></script>
+    <script src="/QR-Code-Generator/js/app.js" type="module"></script>
 </body>
 </html>
