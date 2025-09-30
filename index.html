@@ -88,6 +88,10 @@
                         <img src="assets/ui-icons/whatsapp.svg" alt="WhatsApp icon" class="type-icon">
                         <span>WhatsApp</span>
                     </button>
+                    <button class="type-menu-item" data-type="youtube">
+                        <img src="assets/ui-icons/youtube.svg" alt="YouTube icon" class="type-icon">
+                        <span>YouTube</span>
+                    </button>
                     <button class="type-menu-item" data-type="wifi">
                         <img src="assets/ui-icons/wifi.svg" alt="WiFi icon" class="type-icon">
                         <span>WiFi</span>
@@ -100,6 +104,22 @@
                         <img src="assets/ui-icons/maps.svg" alt="Maps icon" class="type-icon">
                         <span>Maps</span>
                     </button>
+                    <button class="type-menu-item" data-type="event">
+                        <img src="assets/ui-icons/event.svg" alt="Event icon" class="type-icon">
+                        <span>Event</span>
+                    </button>
+                    <button class="type-menu-item" data-type="upi">
+                        <img src="assets/ui-icons/upi.svg" alt="UPI icon" class="type-icon">
+                        <span>UPI Payment</span>
+                    </button>
+                    <button class="type-menu-item" data-type="attendance">
+                        <img src="assets/ui-icons/attendance.svg" alt="Attendance icon" class="type-icon">
+                        <span>Attendance</span>
+                    </button>
+                    <button class="type-menu-item" data-type="file">
+                        <img src="assets/ui-icons/file.svg" alt="File icon" class="type-icon">
+                        <span>File Upload</span>
+                    </button>
                 </nav>
                 <select id="qrType" class="mobile-type-select">
                     <option value="text">Plain Text</option>
@@ -108,9 +128,14 @@
                     <option value="phone">Phone</option>
                     <option value="sms">SMS</option>
                     <option value="whatsapp">WhatsApp</option>
+                    <option value="youtube">YouTube</option>
                     <option value="wifi">WiFi</option>
                     <option value="vcard">Business Card (vCard)</option>
                     <option value="maps">Maps</option>
+                    <option value="event">Event</option>
+                    <option value="upi">UPI Payment</option>
+                    <option value="attendance">Attendance</option>
+                    <option value="file">File Upload</option>
                 </select>
             </div>
 
@@ -161,6 +186,18 @@
                             <div class="form-hint">Enter a WhatsApp number with country code. The QR code will open a WhatsApp chat when scanned.</div>
                             <label for="whatsappMessage" class="form-label">Message (Optional)</label>
                             <textarea id="whatsappMessage" class="form-textarea" placeholder="Pre-filled message" rows="3"></textarea>
+                        </div>
+
+                        <div class="form-group hidden" data-type="youtube">
+                            <label for="youtubeUrl" class="form-label">YouTube URL</label>
+                            <input type="url" id="youtubeUrl" class="form-input" placeholder="https://youtube.com/@channel or video URL">
+                            <div class="form-hint">Supports channels (@username), videos, shorts, and playlists</div>
+                            <div id="youtubeTypeIndicator" style="display: none; margin-top: 10px;">
+                                <div class="url-type-badge">
+                                    <span class="badge-label">Detected:</span>
+                                    <span class="badge-value" id="youtubeTypeValue">-</span>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="form-group hidden" data-type="wifi">
@@ -243,6 +280,210 @@
                                 <div class="form-col-full">
                                     <label for="vcardWebsite" class="form-label">Website</label>
                                     <input type="url" id="vcardWebsite" class="form-input" placeholder="https://example.com">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group hidden" data-type="event">
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label for="eventName" class="form-label">Event Name <span style="color: var(--error-color);">*</span></label>
+                                    <input type="text" id="eventName" class="form-input" placeholder="Conference 2025" required>
+                                    <div class="form-hint">Create a calendar event. Scanning will add the event to the user's calendar app.</div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label for="eventLocation" class="form-label">Location</label>
+                                    <input type="text" id="eventLocation" class="form-input" placeholder="Convention Center, New York">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-col-2">
+                                    <label for="eventStartDate" class="form-label">Start Date <span style="color: var(--error-color);">*</span></label>
+                                    <input type="datetime-local" id="eventStartDate" class="form-input" required>
+                                </div>
+                                <div class="form-col-2">
+                                    <label for="eventEndDate" class="form-label">End Date <span style="color: var(--error-color);">*</span></label>
+                                    <input type="datetime-local" id="eventEndDate" class="form-input" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label for="eventDescription" class="form-label">Description</label>
+                                    <textarea id="eventDescription" class="form-input" rows="3" placeholder="Join us for an exciting event..."></textarea>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label for="eventOrganizer" class="form-label">Organizer</label>
+                                    <input type="text" id="eventOrganizer" class="form-input" placeholder="Event Team">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group hidden" data-type="upi">
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label for="upiId" class="form-label">UPI ID / VPA <span style="color: var(--error-color);">*</span></label>
+                                    <input type="text" id="upiId" class="form-input" placeholder="merchant@upi or 9999999999@paytm" required>
+                                    <div class="form-hint">Enter the UPI ID or Virtual Payment Address (VPA) to receive payment.</div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label for="upiName" class="form-label">Payee Name <span style="color: var(--error-color);">*</span></label>
+                                    <input type="text" id="upiName" class="form-input" placeholder="John's Store" required>
+                                    <div class="form-hint">Name of the person or business receiving payment.</div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label for="upiAmount" class="form-label">Amount (Optional)</label>
+                                    <input type="number" id="upiAmount" class="form-input" placeholder="100.00" step="0.01" min="0">
+                                    <div class="form-hint">Leave empty to let payer enter amount in their UPI app.</div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label for="upiNote" class="form-label">Transaction Note</label>
+                                    <input type="text" id="upiNote" class="form-input" placeholder="Payment for order #123" maxlength="80">
+                                    <div class="form-hint">Note or description for the transaction (max 80 characters).</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group hidden" data-type="attendance">
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label for="attendanceLocation" class="form-label">Location Name <span style="color: var(--error-color);">*</span></label>
+                                    <input type="text" id="attendanceLocation" class="form-input" placeholder="Office Building" required>
+                                    <div class="form-hint">Enter the location name for attendance tracking.</div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label class="form-label">Action Type <span style="color: var(--error-color);">*</span></label>
+                                    <div class="radio-group">
+                                        <label class="radio-label">
+                                            <input type="radio" name="attendanceAction" value="check-in" checked>
+                                            <span>Check In</span>
+                                        </label>
+                                        <label class="radio-label">
+                                            <input type="radio" name="attendanceAction" value="check-out">
+                                            <span>Check Out</span>
+                                        </label>
+                                        <label class="radio-label">
+                                            <input type="radio" name="attendanceAction" value="custom">
+                                            <span>Custom</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-row hidden" id="customActionRow">
+                                <div class="form-col-full">
+                                    <label for="attendanceCustomAction" class="form-label">Custom Action Text</label>
+                                    <input type="text" id="attendanceCustomAction" class="form-input" placeholder="e.g., Break Time">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label for="attendanceEvent" class="form-label">Event Name (Optional)</label>
+                                    <input type="text" id="attendanceEvent" class="form-input" placeholder="Team Meeting">
+                                    <div class="form-hint">Optionally specify the event for this attendance.</div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <div class="form-checkbox">
+                                        <input type="checkbox" id="attendanceAskName">
+                                        <label for="attendanceAskName">Ask for attendee's name when scanning</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label class="form-label">Send Attendance Data Via <span style="color: var(--error-color);">*</span></label>
+                                    <div class="radio-group">
+                                        <label class="radio-label">
+                                            <input type="radio" name="attendanceContact" value="whatsapp" checked>
+                                            <span>WhatsApp</span>
+                                        </label>
+                                        <label class="radio-label">
+                                            <input type="radio" name="attendanceContact" value="email">
+                                            <span>Email</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-row" id="attendanceContactDetails">
+                                <div class="form-col-full">
+                                    <label for="attendancePhone" class="form-label" id="attendanceContactLabel">WhatsApp Number <span style="color: var(--error-color);">*</span></label>
+                                    <input type="tel" id="attendancePhone" class="form-input" placeholder="+1234567890" style="display: block;">
+                                    <input type="email" id="attendanceEmail" class="form-input" placeholder="attendance@example.com" style="display: none;">
+                                    <div class="form-hint" id="attendanceContactHint">Enter the WhatsApp number to receive attendance data.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group hidden" data-type="file">
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label for="fileInput" class="form-label">Select File to Upload</label>
+                                    <input type="file" id="fileInput" class="form-input" accept="*">
+                                    <div class="form-hint" style="color: var(--warning-color); font-weight: 500;">⚠️ Files are uploaded to gofile.io (third-party service). Do not upload sensitive or confidential files. <a href="https://gofile.io/terms" target="_blank" style="color: var(--primary-color);">Terms apply</a>.</div>
+                                </div>
+                            </div>
+                            <div class="form-row" id="filePreviewRow" style="display: none;">
+                                <div class="form-col-full">
+                                    <div style="background: var(--bg-secondary); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color);">
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 24px; height: 24px; color: var(--text-secondary);">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v15c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                                            </svg>
+                                            <div style="flex: 1;">
+                                                <div id="fileName" style="font-weight: 500; color: var(--text-primary);">No file selected</div>
+                                                <div id="fileSize" style="font-size: 0.875em; color: var(--text-secondary); margin-top: 2px;">0 KB</div>
+                                            </div>
+                                            <button type="button" id="removeFileBtn" class="btn-secondary" style="padding: 8px 12px; font-size: 0.875em;">Remove</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <button type="button" id="uploadFileBtn" class="btn-primary" style="width: 100%; padding: 12px; font-size: 1em; background: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; transition: opacity 0.2s;" disabled>
+                                        <span id="uploadBtnText">Select a file first</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-row" id="uploadProgressRow" style="display: none;">
+                                <div class="form-col-full">
+                                    <div style="background: var(--bg-secondary); padding: 15px; border-radius: 8px;">
+                                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                                            <span style="color: var(--text-secondary);">Uploading...</span>
+                                            <span id="uploadPercent" style="color: var(--primary-color); font-weight: 500;">0%</span>
+                                        </div>
+                                        <div style="width: 100%; height: 8px; background: var(--bg-tertiary); border-radius: 4px; overflow: hidden;">
+                                            <div id="uploadProgressBar" style="width: 0%; height: 100%; background: var(--primary-color); transition: width 0.3s ease;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-row" id="uploadSuccessRow" style="display: none;">
+                                <div class="form-col-full">
+                                    <div style="background: var(--success-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--success-color);">
+                                        <div style="color: var(--success-color); font-weight: 500; margin-bottom: 8px;">✓ File uploaded successfully!</div>
+                                        <div style="color: var(--text-secondary); word-break: break-all;">
+                                            <span>Download URL: </span>
+                                            <a id="fileDownloadUrl" href="#" target="_blank" style="color: var(--primary-color);"></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <div class="form-hint">After uploading, a QR code will be generated that links to your file. Anyone with the QR code can download the file.</div>
                                 </div>
                             </div>
                         </div>

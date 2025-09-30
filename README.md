@@ -2,8 +2,8 @@
   <img src="assets/logo.png" alt="QR Code Generator Logo" width="120">
   
   # QR Code Generator
-  
-  **Version 0.1.0**
+
+  **Version 0.1.1**
 
   A modern, responsive web application for generating QR codes with extensive customization options. Features an intuitive layout with icon-based navigation, built with vanilla JavaScript and designed to work seamlessly across all devices.
 
@@ -24,14 +24,20 @@
 - **Phone** - Create tel: links for quick dialing
 - **SMS** - Generate SMS links with pre-filled messages
 - **WhatsApp** - Create WhatsApp conversation links with optional pre-filled messages
+- **YouTube** - Generate QR codes for YouTube channels (@username), videos, shorts, and playlists with smart URL detection
 - **WiFi** - Share WiFi credentials easily
 - **Business Card (vCard)** - Create contact cards with name, phone, email, company, address, and more
 - **Maps** - Google Maps & Apple Maps - Share locations with direct map links
+- **Event** - Create calendar events with name, location, date/time, description, and organizer
+- **UPI Payment** - Generate UPI payment QR codes for instant payments (India) with optional amount and transaction notes
+- **Attendance** - Create attendance tracking QR codes with location check-in/out, geolocation capture, and WhatsApp/Email reporting
+- **File Upload** - Share files via QR codes using gofile.io API with upload progress tracking and download link generation
 
 ### Customization Options
 - **Size Control** - Adjustable from 128px to 512px
 - **Module Shapes** - Square, Rounded, Circle, Diamond, Dots
 - **Color Customization** - Custom foreground and background colors side-by-side
+- **Type-Specific Default Colors** - Each QR type has unique default colors that automatically apply
 - **Margin Control** - Adjustable QR code margins
 - **Error Correction Levels** - Low (7%), Medium (15%), Quartile (25%), High (30%)
 - **Frame Options** - Add professional frames with automatic or custom text labels
@@ -44,8 +50,8 @@
 
 ### Frame Feature
 - **Auto Frame** - Two display options for select QR types:
-  - **Standard Text**: Generic labels (e.g., "GO TO WEBSITE", "SEND EMAIL")
-  - **Contextual Data**: Shows actual content (URL, email address, phone number, WiFi network name, contact name)
+  - **Standard Text**: Generic labels (e.g., "GO TO WEBSITE", "SEND EMAIL", "ADD TO CALENDAR", "WATCH ON YOUTUBE", "DOWNLOAD FILE")
+  - **Contextual Data**: Shows actual content (URL, email address, phone number, WiFi network name, contact name, event name, location name, YouTube channel/video info, UPI payee name, filename)
   - Single option types (Plain Text, SMS, WhatsApp) show standard text only
 - **Custom Frame** - Add your own custom text (up to 30 characters)
 - **Professional Design** - Frame uses QR foreground color with contrasting text
@@ -140,6 +146,22 @@ Show actual content (URL, email, phone) on frames
 Add your own custom text to frames (up to 30 characters)
 ![Custom Text Frame](assets/Screenshots/9.custom-text-frame.png)
 
+#### 10. UPI Payment QR Code
+Generate UPI payment QR codes for instant payments (India)
+![UPI Payment QR Code](assets/Screenshots/10.upi-payment-qr-code.png)
+
+#### 11. Attendance QR Code
+Create attendance tracking QR codes with location check-in/out
+![Attendance QR Code](assets/Screenshots/11.attendance-qr-code.png)
+
+#### 12. Upload File
+Share files via QR codes using gofile.io API
+![Upload File](assets/Screenshots/12.upload-file.png)
+
+#### 13. File Download QR Code
+Generated QR code with download link for shared files
+![File Download QR Code](assets/Screenshots/13.file-download-qr-code.png)
+
 ### Additional Features
 
 #### Install as Progressive Web App
@@ -169,7 +191,8 @@ Switch between light and dark themes
 │   ├── downloadManager.js # Export functionality
 │   ├── historyManager.js  # History management
 │   ├── themeManager.js    # Theme switching
-│   └── installPrompt.js   # PWA install prompt handler
+│   ├── installPrompt.js   # PWA install prompt handler
+│   └── fileUploadManager.js # File upload to gofile.io
 └── assets/
     ├── icons/             # PWA app icons (72x72 to 512x512)
     ├── ui-icons/          # UI interface icons (SVGs)
@@ -184,7 +207,7 @@ Switch between light and dark themes
 - `Alt + D` - Download as PNG
 - `Alt + C` - Copy to clipboard
 - `Alt + T` - Toggle theme
-- `Alt + 1-9` - Quick switch QR type (1=Text, 2=URL, 3=Email, 4=Phone, 5=SMS, 6=WhatsApp, 7=WiFi, 8=vCard, 9=Maps)
+- `Alt + 1-9, 0, -, U, A, F` - Quick switch QR type (1=Text, 2=URL, 3=Email, 4=Phone, 5=SMS, 6=WhatsApp, 7=YouTube, 8=WiFi, 9=vCard, 0=Maps, -=Event, U=UPI, A=Attendance, F=File)
 - `Ctrl/Cmd + Shift + L` - Toggle theme
 
 ## Browser Support

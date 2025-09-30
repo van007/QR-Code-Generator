@@ -4,6 +4,25 @@ import { DownloadManager } from './downloadManager.js';
 import { HistoryManager } from './historyManager.js';
 import { ThemeManager } from './themeManager.js';
 import { InstallPromptManager } from './installPrompt.js';
+import { FileUploadManager } from './fileUploadManager.js';
+
+// Default color configuration for each QR type
+const QR_TYPE_COLORS = {
+    text: { dark: '#000000', light: '#FFFFFF' },
+    url: { dark: '#007AFF', light: '#FFFFFF' },
+    email: { dark: '#5856D6', light: '#FFFFFF' },
+    phone: { dark: '#34C759', light: '#FFFFFF' },
+    sms: { dark: '#32D74B', light: '#FFFFFF' },
+    whatsapp: { dark: '#25D366', light: '#FFFFFF' },
+    youtube: { dark: '#FF0000', light: '#FFFFFF' },
+    wifi: { dark: '#FF9500', light: '#FFFFFF' },
+    vcard: { dark: '#AF52DE', light: '#FFFFFF' },
+    maps: { dark: '#FF3B30', light: '#FFFFFF' },
+    event: { dark: '#FFD60A', light: '#000000' },
+    upi: { dark: '#6B3AA5', light: '#FFFFFF' },
+    attendance: { dark: '#00C853', light: '#FFFFFF' },
+    file: { dark: '#FF5722', light: '#FFFFFF' }
+};
 
 class QRCodeApp {
     constructor() {
@@ -13,6 +32,7 @@ class QRCodeApp {
         this.historyManager = new HistoryManager();
         this.themeManager = new ThemeManager();
         this.installPromptManager = new InstallPromptManager();
+        this.fileUploadManager = new FileUploadManager();
         
         this.currentQRCode = null;
         this.isMobile = this.checkMobile();
@@ -30,6 +50,13 @@ class QRCodeApp {
         this.loadHistory();
         this.themeManager.init();
         this.uiController.init();
+
+        // Apply default colors for the initial QR type
+        const initialType = document.getElementById('qrType').value;
+        this.applyDefaultColors(initialType);
+
+        // Check if URL has attendance parameters
+        this.handleAttendanceMode();
     }
 
     async registerServiceWorker() {
@@ -60,6 +87,7 @@ class QRCodeApp {
         document.getElementById('qrType').addEventListener('change', (e) => {
             this.uiController.switchInputType(e.target.value);
             this.updateSidebarActiveState(e.target.value);
+            this.applyDefaultColors(e.target.value);
             this.resetCustomizationOptions();
             this.uiController.hideQRCode();
         });
@@ -72,6 +100,7 @@ class QRCodeApp {
                 document.getElementById('qrType').value = type;
                 this.uiController.switchInputType(type);
                 this.updateSidebarActiveState(type);
+                this.applyDefaultColors(type);
                 this.resetCustomizationOptions();
                 this.uiController.hideQRCode();
             });
@@ -130,7 +159,53 @@ class QRCodeApp {
                 this.updateAutoFrameOptions();
             }
         });
-        
+
+        // YouTube URL input listener for real-time type detection
+        document.getElementById('youtubeUrl').addEventListener('input', (e) => {
+            const url = e.target.value.trim();
+            if (url) {
+                const ytData = this.qrGenerator.parseYouTubeURL(url);
+                this.updateYouTubeTypeIndicator(ytData);
+            } else {
+                document.getElementById('youtubeTypeIndicator').style.display = 'none';
+            }
+        });
+
+        // Attendance action type listeners
+        document.querySelectorAll('input[name="attendanceAction"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const customActionRow = document.getElementById('customActionRow');
+                if (e.target.value === 'custom') {
+                    customActionRow.classList.remove('hidden');
+                } else {
+                    customActionRow.classList.add('hidden');
+                    document.getElementById('attendanceCustomAction').value = '';
+                }
+            });
+        });
+
+        // Attendance contact method listeners
+        document.querySelectorAll('input[name="attendanceContact"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const phoneInput = document.getElementById('attendancePhone');
+                const emailInput = document.getElementById('attendanceEmail');
+                const contactLabel = document.getElementById('attendanceContactLabel');
+                const contactHint = document.getElementById('attendanceContactHint');
+
+                if (e.target.value === 'whatsapp') {
+                    phoneInput.style.display = 'block';
+                    emailInput.style.display = 'none';
+                    contactLabel.innerHTML = 'WhatsApp Number <span style="color: var(--error-color);">*</span>';
+                    contactHint.textContent = 'Enter the WhatsApp number to receive attendance data.';
+                } else {
+                    phoneInput.style.display = 'none';
+                    emailInput.style.display = 'block';
+                    contactLabel.innerHTML = 'Email Address <span style="color: var(--error-color);">*</span>';
+                    contactHint.textContent = 'Enter the email address to receive attendance data.';
+                }
+            });
+        });
+
         document.getElementById('downloadPNG').addEventListener('click', () => {
             if (this.currentQRCode) {
                 const downloadOptions = { ...this.currentQRCode.options };
@@ -218,8 +293,14 @@ class QRCodeApp {
             frameOption: frameOption,
             customFrameText: customFrameText,
             autoFrameType: autoFrameType,
-            qrType: type
+            qrType: type,
+            qrData: data
         };
+
+        // Add file metadata if available
+        if (type === 'file' && this.currentFileMetadata) {
+            options.fileMetadata = this.currentFileMetadata;
+        }
         
         try {
             this.qrGenerator.generate(data, options).then((qrCode) => {
@@ -286,16 +367,32 @@ class QRCodeApp {
                 const whatsappNumber = document.getElementById('whatsappNumber').value.trim();
                 const whatsappMessage = document.getElementById('whatsappMessage').value.trim();
                 if (!whatsappNumber) return null;
-                
+
                 const cleanNumber = whatsappNumber.replace(/[^\d]/g, '');
-                
+
                 let waUrl = `https://wa.me/${cleanNumber}`;
                 if (whatsappMessage) {
                     waUrl += `?text=${encodeURIComponent(whatsappMessage)}`;
                 }
-                
+
                 return waUrl;
-            
+
+            case 'youtube':
+                const youtubeUrl = document.getElementById('youtubeUrl').value.trim();
+                if (!youtubeUrl) return null;
+
+                // Validate and normalize YouTube URL
+                const ytUrlData = this.qrGenerator.parseYouTubeURL(youtubeUrl);
+                if (!ytUrlData || !ytUrlData.valid) {
+                    this.uiController.showNotification('Please enter a valid YouTube URL', 'error');
+                    return null;
+                }
+
+                // Update the type indicator
+                this.updateYouTubeTypeIndicator(ytUrlData);
+
+                return ytUrlData.normalizedUrl;
+
             case 'wifi':
                 const ssid = document.getElementById('wifiSSID').value.trim();
                 const password = document.getElementById('wifiPassword').value.trim();
@@ -341,12 +438,12 @@ class QRCodeApp {
                 const vcardName = document.getElementById('vcardName').value.trim();
                 const vcardMobile = document.getElementById('vcardMobile').value.trim();
                 const vcardEmail = document.getElementById('vcardEmail').value.trim();
-                
+
                 if (!vcardName || !vcardMobile || !vcardEmail) {
                     this.uiController.showNotification('Name, Mobile, and Email are required fields', 'error');
                     return null;
                 }
-                
+
                 const vcardCompany = document.getElementById('vcardCompany').value.trim();
                 const vcardJobTitle = document.getElementById('vcardJobTitle').value.trim();
                 const vcardStreet = document.getElementById('vcardStreet').value.trim();
@@ -355,7 +452,7 @@ class QRCodeApp {
                 const vcardState = document.getElementById('vcardState').value.trim();
                 const vcardCountry = document.getElementById('vcardCountry').value.trim();
                 const vcardWebsite = document.getElementById('vcardWebsite').value.trim();
-                
+
                 const vcardData = {
                     name: vcardName,
                     phone: vcardMobile,
@@ -369,9 +466,151 @@ class QRCodeApp {
                     country: vcardCountry,
                     url: vcardWebsite
                 };
-                
+
                 return this.qrGenerator.generateVCard(vcardData);
-            
+
+            case 'event':
+                const eventName = document.getElementById('eventName').value.trim();
+                const eventStartDate = document.getElementById('eventStartDate').value;
+                const eventEndDate = document.getElementById('eventEndDate').value;
+
+                if (!eventName || !eventStartDate || !eventEndDate) {
+                    this.uiController.showNotification('Event Name, Start Date, and End Date are required fields', 'error');
+                    return null;
+                }
+
+                const eventLocation = document.getElementById('eventLocation').value.trim();
+                const eventDescription = document.getElementById('eventDescription').value.trim();
+                const eventOrganizer = document.getElementById('eventOrganizer').value.trim();
+
+                const eventData = {
+                    name: eventName,
+                    location: eventLocation,
+                    startDate: eventStartDate,
+                    endDate: eventEndDate,
+                    description: eventDescription,
+                    organizer: eventOrganizer
+                };
+
+                return this.qrGenerator.generateVEvent(eventData);
+
+            case 'upi':
+                const upiId = document.getElementById('upiId').value.trim();
+                const upiName = document.getElementById('upiName').value.trim();
+                const upiAmount = document.getElementById('upiAmount').value.trim();
+                const upiNote = document.getElementById('upiNote').value.trim();
+
+                // Validation
+                if (!upiId) {
+                    this.uiController.showNotification('UPI ID is required', 'error');
+                    return null;
+                }
+
+                if (!upiName) {
+                    this.uiController.showNotification('Payee Name is required', 'error');
+                    return null;
+                }
+
+                // Basic UPI ID validation
+                const upiPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9]+$/;
+                if (!upiPattern.test(upiId)) {
+                    this.uiController.showNotification('Invalid UPI ID format. Use format: username@upi', 'error');
+                    return null;
+                }
+
+                // Build UPI deep link URL
+                let upiUrl = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(upiName)}`;
+
+                // Add optional amount if provided
+                if (upiAmount && parseFloat(upiAmount) > 0) {
+                    upiUrl += `&am=${parseFloat(upiAmount).toFixed(2)}`;
+                }
+
+                // Add transaction note if provided
+                if (upiNote) {
+                    upiUrl += `&tn=${encodeURIComponent(upiNote)}`;
+                }
+
+                // Always add currency as INR for UPI
+                upiUrl += '&cu=INR';
+
+                return upiUrl;
+
+            case 'attendance':
+                const attendanceLocation = document.getElementById('attendanceLocation').value.trim();
+                const attendanceActionType = document.querySelector('input[name="attendanceAction"]:checked')?.value;
+                const attendanceCustomAction = document.getElementById('attendanceCustomAction').value.trim();
+                const attendanceEvent = document.getElementById('attendanceEvent').value.trim();
+                const attendanceAskName = document.getElementById('attendanceAskName').checked;
+                const attendanceContactMethod = document.querySelector('input[name="attendanceContact"]:checked')?.value;
+                const attendancePhone = document.getElementById('attendancePhone').value.trim();
+                const attendanceEmail = document.getElementById('attendanceEmail').value.trim();
+
+                // Validation
+                if (!attendanceLocation) {
+                    this.uiController.showNotification('Location name is required', 'error');
+                    return null;
+                }
+
+                if (!attendanceActionType) {
+                    this.uiController.showNotification('Action type is required', 'error');
+                    return null;
+                }
+
+                if (attendanceActionType === 'custom' && !attendanceCustomAction) {
+                    this.uiController.showNotification('Custom action text is required', 'error');
+                    return null;
+                }
+
+                if (!attendanceContactMethod) {
+                    this.uiController.showNotification('Contact method is required', 'error');
+                    return null;
+                }
+
+                if (attendanceContactMethod === 'whatsapp' && !attendancePhone) {
+                    this.uiController.showNotification('WhatsApp number is required', 'error');
+                    return null;
+                }
+
+                if (attendanceContactMethod === 'email' && !attendanceEmail) {
+                    this.uiController.showNotification('Email address is required', 'error');
+                    return null;
+                }
+
+                // Build attendance URL with parameters
+                const attendanceParams = new URLSearchParams();
+                attendanceParams.set('attendance', '1');
+                attendanceParams.set('loc', attendanceLocation);
+                attendanceParams.set('action', attendanceActionType === 'custom' ? attendanceCustomAction : attendanceActionType);
+                if (attendanceEvent) attendanceParams.set('event', attendanceEvent);
+                attendanceParams.set('askName', attendanceAskName ? 'true' : 'false');
+                attendanceParams.set('contact', attendanceContactMethod);
+                attendanceParams.set(attendanceContactMethod === 'whatsapp' ? 'phone' : 'email',
+                          attendanceContactMethod === 'whatsapp' ? attendancePhone : attendanceEmail);
+
+                return `${window.location.origin}/?${attendanceParams.toString()}`;
+
+            case 'file':
+                const fileUploadData = this.fileUploadManager.getUploadedFileData();
+
+                // Check if file has been uploaded
+                if (!fileUploadData.url) {
+                    // Check if a file is selected
+                    if (this.fileUploadManager.selectedFile) {
+                        this.uiController.showNotification('Please upload the file first by clicking "Upload File"', 'info');
+                    } else {
+                        this.uiController.showNotification('Please select a file to upload', 'error');
+                    }
+                    return null;
+                }
+
+                // Store metadata for contextual frame
+                if (fileUploadData.metadata) {
+                    this.currentFileMetadata = fileUploadData.metadata;
+                }
+
+                return fileUploadData.url;
+
             default:
                 return null;
         }
@@ -689,7 +928,16 @@ class QRCodeApp {
                     document.getElementById('whatsappMessage').value = waMatch[3] ? decodeURIComponent(waMatch[3]) : '';
                 }
                 break;
-            
+
+            case 'youtube':
+                document.getElementById('youtubeUrl').value = data;
+                // Parse and show type indicator
+                const ytData = this.qrGenerator.parseYouTubeURL(data);
+                if (ytData && ytData.valid) {
+                    this.updateYouTubeTypeIndicator(ytData);
+                }
+                break;
+
             case 'wifi':
                 const wifiData = this.parseWifiString(data);
                 document.getElementById('wifiSSID').value = wifiData.ssid || '';
@@ -716,6 +964,92 @@ class QRCodeApp {
                 document.getElementById('vcardCountry').value = vcardData.country || '';
                 document.getElementById('vcardWebsite').value = vcardData.url || '';
                 break;
+
+            case 'event':
+                const eventData = this.parseEventString(data);
+                document.getElementById('eventName').value = eventData.name || '';
+                document.getElementById('eventLocation').value = eventData.location || '';
+                document.getElementById('eventStartDate').value = eventData.startDate || '';
+                document.getElementById('eventEndDate').value = eventData.endDate || '';
+                document.getElementById('eventDescription').value = eventData.description || '';
+                document.getElementById('eventOrganizer').value = eventData.organizer || '';
+                break;
+
+            case 'upi':
+                // Parse the UPI deep link URL
+                const upiData = this.parseUpiUrl(data);
+                document.getElementById('upiId').value = upiData.pa || '';
+                document.getElementById('upiName').value = upiData.pn || '';
+                document.getElementById('upiAmount').value = upiData.am || '';
+                document.getElementById('upiNote').value = upiData.tn || '';
+                break;
+
+            case 'attendance':
+                // Parse the attendance URL parameters
+                const attendanceUrl = new URL(data);
+                const attendanceUrlParams = new URLSearchParams(attendanceUrl.search);
+
+                document.getElementById('attendanceLocation').value = attendanceUrlParams.get('loc') || '';
+                document.getElementById('attendanceEvent').value = attendanceUrlParams.get('event') || '';
+                document.getElementById('attendanceAskName').checked = attendanceUrlParams.get('askName') === 'true';
+
+                // Set action type
+                const attendanceAction = attendanceUrlParams.get('action');
+                if (attendanceAction === 'check-in' || attendanceAction === 'check-out') {
+                    document.querySelector(`input[name="attendanceAction"][value="${attendanceAction}"]`).checked = true;
+                    document.getElementById('customActionRow').classList.add('hidden');
+                } else {
+                    document.querySelector('input[name="attendanceAction"][value="custom"]').checked = true;
+                    document.getElementById('attendanceCustomAction').value = attendanceAction || '';
+                    document.getElementById('customActionRow').classList.remove('hidden');
+                }
+
+                // Set contact method
+                const attendanceContactMethod = attendanceUrlParams.get('contact');
+                if (attendanceContactMethod) {
+                    document.querySelector(`input[name="attendanceContact"][value="${attendanceContactMethod}"]`).checked = true;
+
+                    if (attendanceContactMethod === 'whatsapp') {
+                        document.getElementById('attendancePhone').value = attendanceUrlParams.get('phone') || '';
+                        document.getElementById('attendancePhone').style.display = 'block';
+                        document.getElementById('attendanceEmail').style.display = 'none';
+                        document.getElementById('attendanceContactLabel').textContent = 'WhatsApp Number *';
+                        document.getElementById('attendanceContactHint').textContent = 'Enter the WhatsApp number to receive attendance data.';
+                    } else {
+                        document.getElementById('attendanceEmail').value = attendanceUrlParams.get('email') || '';
+                        document.getElementById('attendancePhone').style.display = 'none';
+                        document.getElementById('attendanceEmail').style.display = 'block';
+                        document.getElementById('attendanceContactLabel').textContent = 'Email Address *';
+                        document.getElementById('attendanceContactHint').textContent = 'Enter the email address to receive attendance data.';
+                    }
+                }
+                break;
+
+            case 'file':
+                // Display the file URL and metadata if available
+                const fileDownloadUrl = document.getElementById('fileDownloadUrl');
+                const uploadSuccessRow = document.getElementById('uploadSuccessRow');
+                const uploadBtnText = document.getElementById('uploadBtnText');
+
+                if (fileDownloadUrl) {
+                    fileDownloadUrl.href = data;
+                    fileDownloadUrl.textContent = data;
+                }
+
+                if (uploadSuccessRow) {
+                    uploadSuccessRow.style.display = 'block';
+                }
+
+                if (uploadBtnText) {
+                    uploadBtnText.textContent = 'Generate QR Code';
+                }
+
+                // Store the URL for re-generation
+                this.fileUploadManager.uploadedFileUrl = data;
+
+                // Note: Cannot restore actual file, only the URL
+                this.uiController.showNotification('File URL restored. Original file cannot be restored.', 'info');
+                break;
         }
     }
 
@@ -736,7 +1070,7 @@ class QRCodeApp {
     parseVCardString(vcardString) {
         const result = {};
         const lines = vcardString.split('\n');
-        
+
         lines.forEach(line => {
             if (line.startsWith('FN:')) {
                 result.name = line.substring(3);
@@ -761,7 +1095,63 @@ class QRCodeApp {
                 }
             }
         });
-        
+
+        return result;
+    }
+
+    parseEventString(eventString) {
+        const result = {};
+        const lines = eventString.split('\n');
+
+        lines.forEach(line => {
+            if (line.startsWith('SUMMARY:')) {
+                result.name = line.substring(8);
+            } else if (line.startsWith('LOCATION:')) {
+                result.location = line.substring(9);
+            } else if (line.startsWith('DTSTART:')) {
+                // Convert from UTC format to datetime-local format
+                const dtstart = line.substring(8);
+                result.startDate = this.convertToDateTimeLocal(dtstart);
+            } else if (line.startsWith('DTEND:')) {
+                // Convert from UTC format to datetime-local format
+                const dtend = line.substring(6);
+                result.endDate = this.convertToDateTimeLocal(dtend);
+            } else if (line.startsWith('DESCRIPTION:')) {
+                result.description = line.substring(12);
+            } else if (line.startsWith('ORGANIZER:')) {
+                result.organizer = line.substring(10);
+            }
+        });
+
+        return result;
+    }
+
+    convertToDateTimeLocal(utcString) {
+        // Convert YYYYMMDDTHHMMSSZ to YYYY-MM-DDTHH:MM format
+        if (!utcString || utcString.length < 15) return '';
+
+        const year = utcString.substring(0, 4);
+        const month = utcString.substring(4, 6);
+        const day = utcString.substring(6, 8);
+        const hour = utcString.substring(9, 11);
+        const minute = utcString.substring(11, 13);
+
+        return `${year}-${month}-${day}T${hour}:${minute}`;
+    }
+
+    parseUpiUrl(upiUrl) {
+        const result = {};
+
+        // Extract parameters from UPI URL
+        if (upiUrl && upiUrl.startsWith('upi://pay?')) {
+            const params = new URLSearchParams(upiUrl.substring(10));
+
+            result.pa = params.get('pa') ? decodeURIComponent(params.get('pa')) : '';
+            result.pn = params.get('pn') ? decodeURIComponent(params.get('pn')) : '';
+            result.am = params.get('am') || '';
+            result.tn = params.get('tn') ? decodeURIComponent(params.get('tn')) : '';
+        }
+
         return result;
     }
 
@@ -831,22 +1221,19 @@ class QRCodeApp {
     resetCustomizationOptions() {
         // Reset size to default
         document.getElementById('qrSize').value = '256';
-        
+
         // Reset module shape to square
         document.getElementById('moduleShape').value = 'square';
-        
-        // Reset colors to default
-        document.getElementById('colorDark').value = '#000000';
-        document.getElementById('colorDarkHex').value = '#000000';
-        document.getElementById('colorLight').value = '#ffffff';
-        document.getElementById('colorLightHex').value = '#ffffff';
-        
+
+        // Note: Colors are now handled by applyDefaultColors() method
+        // which applies type-specific colors instead of always resetting to black/white
+
         // Reset margin to default
         document.getElementById('margin').value = '4';
-        
+
         // Reset error correction to medium
         document.getElementById('errorCorrection').value = 'M';
-        
+
         // Reset frame options
         document.getElementById('frameOption').value = 'none';
         document.getElementById('customFrameTextGroup').classList.add('hidden');
@@ -865,7 +1252,12 @@ class QRCodeApp {
             'phone': { generic: 'CALL NUMBER', contextual: 'Show Phone Number' },
             'wifi': { generic: 'SHARE WIFI', contextual: 'Show Network Name' },
             'vcard': { generic: 'SAVE CONTACT', contextual: 'Show Contact Name' },
-            'maps': { generic: 'VIEW LOCATION', contextual: 'Show Location Name' }
+            'maps': { generic: 'VIEW LOCATION', contextual: 'Show Location Name' },
+            'event': { generic: 'ADD TO CALENDAR', contextual: 'Show Event Name' },
+            'youtube': { generic: 'WATCH ON YOUTUBE', contextual: 'Show Channel/Video Info' },
+            'upi': { generic: 'PAY WITH UPI', contextual: 'Show Payee Name' },
+            'attendance': { generic: 'CHECK IN', contextual: 'Show Location' },
+            'file': { generic: 'DOWNLOAD FILE', contextual: 'Show Filename' }
         };
         
         const singleOptionTypes = {
@@ -913,6 +1305,227 @@ class QRCodeApp {
                 </div>
             `;
         }
+    }
+
+    updateYouTubeTypeIndicator(ytData) {
+        const indicator = document.getElementById('youtubeTypeIndicator');
+        const valueSpan = document.getElementById('youtubeTypeValue');
+
+        if (ytData && ytData.type) {
+            indicator.style.display = 'block';
+
+            const typeLabels = {
+                'channel': 'YouTube Channel',
+                'video': 'YouTube Video',
+                'shorts': 'YouTube Short',
+                'playlist': 'YouTube Playlist'
+            };
+
+            valueSpan.textContent = typeLabels[ytData.type] || ytData.type;
+        } else {
+            indicator.style.display = 'none';
+        }
+    }
+
+    applyDefaultColors(type) {
+        const colors = QR_TYPE_COLORS[type];
+        if (colors) {
+            // Update color picker values
+            document.getElementById('colorDark').value = colors.dark;
+            document.getElementById('colorLight').value = colors.light;
+
+            // Update hex input values
+            document.getElementById('colorDarkHex').value = colors.dark;
+            document.getElementById('colorLightHex').value = colors.light;
+
+            // Dispatch input events to update any visual feedback
+            document.getElementById('colorDark').dispatchEvent(new Event('input'));
+            document.getElementById('colorLight').dispatchEvent(new Event('input'));
+        }
+    }
+
+    handleAttendanceMode() {
+        const urlParams = new URLSearchParams(window.location.search);
+
+        if (urlParams.get('attendance') === '1') {
+            // Attendance mode detected
+            const attendanceData = {
+                location: urlParams.get('loc'),
+                action: urlParams.get('action'),
+                event: urlParams.get('event'),
+                askName: urlParams.get('askName') === 'true',
+                contact: urlParams.get('contact'),
+                phone: urlParams.get('phone'),
+                email: urlParams.get('email')
+            };
+
+            // Show attendance processing UI
+            this.showAttendanceUI(attendanceData);
+        }
+    }
+
+    async showAttendanceUI(data) {
+        // Create overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'attendance-overlay';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        `;
+
+        // Create modal
+        const modal = document.createElement('div');
+        modal.className = 'attendance-modal';
+        modal.style.cssText = `
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        `;
+
+        modal.innerHTML = `
+            <h2 style="margin-top: 0;">Attendance Check-In</h2>
+            <p><strong>Location:</strong> ${data.location || 'Unknown'}</p>
+            <p><strong>Action:</strong> ${data.action || 'check-in'}</p>
+            ${data.event ? `<p><strong>Event:</strong> ${data.event}</p>` : ''}
+
+            ${data.askName ? `
+                <div style="margin: 1.5rem 0;">
+                    <label for="attendeeName" style="display: block; margin-bottom: 0.5rem;">Your Name:</label>
+                    <input type="text" id="attendeeName" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-secondary); color: var(--text-primary);" placeholder="Enter your name">
+                </div>
+            ` : ''}
+
+            <div id="locationStatus" style="margin: 1rem 0; padding: 1rem; background: var(--bg-secondary); border-radius: 8px;">
+                <p style="margin: 0;">Requesting location permission...</p>
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button id="submitAttendance" style="flex: 1; padding: 0.75rem; background: var(--primary-color); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Submit Attendance</button>
+                <button id="cancelAttendance" style="flex: 1; padding: 0.75rem; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 8px; font-weight: 600; cursor: pointer;">Cancel</button>
+            </div>
+        `;
+
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+
+        // Get location
+        let coordinates = null;
+        const locationStatus = modal.querySelector('#locationStatus');
+
+        // Check if we're on HTTPS (required for geolocation)
+        if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+            locationStatus.innerHTML = `
+                <p style="margin: 0; color: var(--warning-color);">⚠ Location requires HTTPS</p>
+                <p style="margin: 0; font-size: 0.9em; opacity: 0.8;">Location tracking is disabled on non-secure connections.</p>
+            `;
+        } else {
+            try {
+                const position = await this.getCurrentPosition();
+                coordinates = {
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude
+                };
+                locationStatus.innerHTML = `<p style="margin: 0; color: var(--success-color);">✓ Location obtained</p>`;
+            } catch (error) {
+                let errorMessage = '⚠ Location access denied or unavailable';
+                let errorDetail = '';
+
+                // Provide specific error messages
+                if (error.code === 1) {
+                    errorMessage = '⚠ Location access denied';
+                    errorDetail = 'Please allow location access and try again.';
+                } else if (error.code === 2) {
+                    errorMessage = '⚠ Location unavailable';
+                    errorDetail = 'Unable to determine your location.';
+                } else if (error.code === 3) {
+                    errorMessage = '⚠ Location request timeout';
+                    errorDetail = 'Location request took too long.';
+                } else if (!navigator.geolocation) {
+                    errorMessage = '⚠ Location not supported';
+                    errorDetail = 'Your browser does not support location services.';
+                }
+
+                locationStatus.innerHTML = `
+                    <p style="margin: 0; color: var(--error-color);">${errorMessage}</p>
+                    ${errorDetail ? `<p style="margin: 0; font-size: 0.9em; opacity: 0.8;">${errorDetail}</p>` : ''}
+                `;
+            }
+        }
+
+        // Handle submit
+        modal.querySelector('#submitAttendance').addEventListener('click', () => {
+            const attendeeName = data.askName ? modal.querySelector('#attendeeName').value.trim() : '';
+
+            if (data.askName && !attendeeName) {
+                this.uiController.showNotification('Please enter your name', 'error');
+                return;
+            }
+
+            // Format attendance message
+            const timestamp = new Date().toLocaleString();
+            let message = `Attendance Report\n`;
+            message += `================\n`;
+            message += `Action: ${data.action || 'check-in'}\n`;
+            message += `Location: ${data.location || 'Unknown'}\n`;
+            if (data.event) message += `Event: ${data.event}\n`;
+            if (attendeeName) message += `Name: ${attendeeName}\n`;
+            message += `Time: ${timestamp}\n`;
+            if (coordinates) {
+                message += `Coordinates: ${coordinates.latitude.toFixed(6)}, ${coordinates.longitude.toFixed(6)}\n`;
+                message += `Map: https://maps.google.com/?q=${coordinates.latitude},${coordinates.longitude}\n`;
+            }
+
+            // Send via WhatsApp or Email
+            if (data.contact === 'whatsapp' && data.phone) {
+                const cleanPhone = data.phone.replace(/[^\d]/g, '');
+                const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+                window.open(waUrl, '_blank');
+            } else if (data.contact === 'email' && data.email) {
+                const subject = `Attendance: ${data.action} at ${data.location}`;
+                const mailtoUrl = `mailto:${data.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
+                window.location.href = mailtoUrl;
+            }
+
+            // Remove overlay
+            document.body.removeChild(overlay);
+            this.uiController.showNotification('Attendance submitted successfully!', 'success');
+        });
+
+        // Handle cancel
+        modal.querySelector('#cancelAttendance').addEventListener('click', () => {
+            document.body.removeChild(overlay);
+        });
+    }
+
+    getCurrentPosition() {
+        return new Promise((resolve, reject) => {
+            if (!navigator.geolocation) {
+                reject(new Error('Geolocation not supported'));
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                position => resolve(position),
+                error => reject(error),
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        });
     }
 }
 

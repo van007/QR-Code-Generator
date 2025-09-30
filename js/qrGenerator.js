@@ -210,30 +210,51 @@ export class QRGenerator {
         return vcard;
     }
 
-    generateEvent(event) {
-        let eventString = 'BEGIN:VEVENT\n';
-        
-        if (event.summary) {
-            eventString += `SUMMARY:${event.summary}\n`;
+    generateVEvent(event) {
+        let vevent = 'BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\n';
+
+        if (event.name) {
+            vevent += `SUMMARY:${event.name}\n`;
         }
+
         if (event.location) {
-            eventString += `LOCATION:${event.location}\n`;
+            vevent += `LOCATION:${event.location}\n`;
         }
+
+        // Convert datetime-local to UTC format (YYYYMMDDTHHMMSSZ)
         if (event.startDate) {
-            const start = new Date(event.startDate).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-            eventString += `DTSTART:${start}\n`;
+            const startDateTime = this.convertToUTCFormat(event.startDate);
+            vevent += `DTSTART:${startDateTime}\n`;
         }
+
         if (event.endDate) {
-            const end = new Date(event.endDate).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-            eventString += `DTEND:${end}\n`;
+            const endDateTime = this.convertToUTCFormat(event.endDate);
+            vevent += `DTEND:${endDateTime}\n`;
         }
+
         if (event.description) {
-            eventString += `DESCRIPTION:${event.description}\n`;
+            vevent += `DESCRIPTION:${event.description}\n`;
         }
-        
-        eventString += 'END:VEVENT';
-        
-        return eventString;
+
+        if (event.organizer) {
+            vevent += `ORGANIZER:${event.organizer}\n`;
+        }
+
+        vevent += 'END:VEVENT\nEND:VCALENDAR';
+
+        return vevent;
+    }
+
+    convertToUTCFormat(dateTimeLocal) {
+        // Convert YYYY-MM-DDTHH:MM to YYYYMMDDTHHMMSSZ format
+        const date = new Date(dateTimeLocal);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+
+        return `${year}${month}${day}T${hours}${minutes}00Z`;
     }
 
     generateGeoLocation(latitude, longitude) {
@@ -287,6 +308,119 @@ export class QRGenerator {
         
         // Pixel is a module if it's closer to dark color than light color
         return distToDark < distToLight;
+    }
+
+    parseYouTubeURL(url) {
+        if (!url) return null;
+
+        // Normalize URL
+        url = url.trim();
+        if (!url.startsWith('http')) {
+            url = 'https://' + url;
+        }
+
+        // Replace mobile URLs with standard URLs
+        url = url.replace('m.youtube.com', 'www.youtube.com');
+        url = url.replace('music.youtube.com', 'www.youtube.com');
+
+        const result = {
+            valid: false,
+            type: null,
+            id: null,
+            normalizedUrl: url,
+            channelName: null,
+            metadata: {}
+        };
+
+        try {
+            const urlObj = new URL(url);
+
+            // Check if it's a YouTube URL
+            if (!urlObj.hostname.includes('youtube.com') && !urlObj.hostname.includes('youtu.be')) {
+                return result;
+            }
+
+            // Channel URLs
+            if (urlObj.pathname.startsWith('/@')) {
+                result.valid = true;
+                result.type = 'channel';
+                result.channelName = urlObj.pathname.substring(2);
+                result.normalizedUrl = `https://www.youtube.com/@${result.channelName}`;
+            } else if (urlObj.pathname.startsWith('/c/')) {
+                result.valid = true;
+                result.type = 'channel';
+                result.channelName = urlObj.pathname.substring(3);
+                result.normalizedUrl = `https://www.youtube.com/c/${result.channelName}`;
+            } else if (urlObj.pathname.startsWith('/channel/')) {
+                result.valid = true;
+                result.type = 'channel';
+                result.id = urlObj.pathname.substring(9);
+                result.normalizedUrl = `https://www.youtube.com/channel/${result.id}`;
+            } else if (urlObj.pathname.startsWith('/user/')) {
+                result.valid = true;
+                result.type = 'channel';
+                result.channelName = urlObj.pathname.substring(6);
+                result.normalizedUrl = `https://www.youtube.com/user/${result.channelName}`;
+            }
+            // Video URLs
+            else if (urlObj.pathname === '/watch') {
+                const videoId = urlObj.searchParams.get('v');
+                if (videoId) {
+                    result.valid = true;
+                    result.type = 'video';
+                    result.id = videoId;
+                    result.normalizedUrl = `https://www.youtube.com/watch?v=${videoId}`;
+
+                    // Preserve timestamp if present
+                    const time = urlObj.searchParams.get('t');
+                    if (time) {
+                        result.normalizedUrl += `&t=${time}`;
+                        result.metadata.timestamp = time;
+                    }
+                }
+            }
+            // Short URLs (youtu.be)
+            else if (urlObj.hostname === 'youtu.be') {
+                const videoId = urlObj.pathname.substring(1);
+                if (videoId) {
+                    result.valid = true;
+                    result.type = 'video';
+                    result.id = videoId;
+                    result.normalizedUrl = `https://www.youtube.com/watch?v=${videoId}`;
+
+                    // Preserve timestamp if present
+                    const time = urlObj.searchParams.get('t');
+                    if (time) {
+                        result.normalizedUrl += `&t=${time}`;
+                        result.metadata.timestamp = time;
+                    }
+                }
+            }
+            // Shorts URLs
+            else if (urlObj.pathname.startsWith('/shorts/')) {
+                const shortId = urlObj.pathname.substring(8);
+                if (shortId) {
+                    result.valid = true;
+                    result.type = 'shorts';
+                    result.id = shortId;
+                    result.normalizedUrl = `https://www.youtube.com/shorts/${shortId}`;
+                }
+            }
+            // Playlist URLs
+            else if (urlObj.pathname === '/playlist') {
+                const listId = urlObj.searchParams.get('list');
+                if (listId) {
+                    result.valid = true;
+                    result.type = 'playlist';
+                    result.id = listId;
+                    result.normalizedUrl = `https://www.youtube.com/playlist?list=${listId}`;
+                }
+            }
+
+            return result;
+        } catch (e) {
+            return result;
+        }
     }
 
     applyModuleShape(canvas, shape, colorDark, colorLight) {
@@ -428,7 +562,7 @@ export class QRGenerator {
             
             if (autoFrameType === 'contextual') {
                 // Extract contextual data based on QR type
-                frameText = this.extractContextualData(options.qrData || '', options.qrType);
+                frameText = this.extractContextualData(options.qrData || '', options.qrType, options);
             } else {
                 // Use generic text
                 const frameTextMap = {
@@ -438,9 +572,14 @@ export class QRGenerator {
                     'phone': 'CALL NUMBER',
                     'sms': 'SEND SMS',
                     'whatsapp': 'SEND WHATSAPP',
+                    'youtube': 'WATCH ON YOUTUBE',
                     'wifi': 'SHARE WIFI',
                     'vcard': 'SAVE CONTACT',
-                    'maps': 'VIEW LOCATION'
+                    'maps': 'VIEW LOCATION',
+                    'event': 'ADD TO CALENDAR',
+                    'upi': 'PAY WITH UPI',
+                    'attendance': 'CHECK IN',
+                    'file': 'DOWNLOAD FILE'
                 };
                 frameText = frameTextMap[options.qrType] || 'SCAN ME';
             }
@@ -524,7 +663,7 @@ export class QRGenerator {
         canvas.dataset.frameText = frameText;
     }
 
-    extractContextualData(data, qrType) {
+    extractContextualData(data, qrType, options = {}) {
         try {
             switch (qrType) {
                 case 'url':
@@ -591,7 +730,72 @@ export class QRGenerator {
                     
                     // For shortened URLs or when name cannot be extracted, show generic text
                     return 'VIEW LOCATION';
-                    
+
+                case 'event':
+                    // Parse vCalendar format to extract event name
+                    const summaryMatch = data.match(/SUMMARY:([^\n\r]+)/);
+                    if (summaryMatch && summaryMatch[1]) {
+                        return this.truncateText(summaryMatch[1], 30);
+                    }
+                    return 'ADD TO CALENDAR';
+
+                case 'youtube':
+                    // Parse YouTube URL to extract contextual information
+                    const ytData = this.parseYouTubeURL(data);
+                    if (ytData && ytData.valid) {
+                        if (ytData.type === 'channel' && ytData.channelName) {
+                            // For channels, show the channel name
+                            return this.truncateText(`@${ytData.channelName}`, 30);
+                        } else if (ytData.type === 'video' && ytData.id) {
+                            // For videos, show video ID (could be enhanced to fetch title)
+                            return this.truncateText(`Video: ${ytData.id}`, 30);
+                        } else if (ytData.type === 'shorts' && ytData.id) {
+                            // For shorts, indicate it's a short
+                            return 'YouTube Short';
+                        } else if (ytData.type === 'playlist' && ytData.id) {
+                            // For playlists, show playlist indicator
+                            return this.truncateText(`Playlist: ${ytData.id}`, 30);
+                        }
+                    }
+                    return 'WATCH ON YOUTUBE';
+
+                case 'upi':
+                    // Extract payee name from UPI URL
+                    if (data.startsWith('upi://pay?')) {
+                        const params = new URLSearchParams(data.substring(10));
+                        const payeeName = params.get('pn');
+                        if (payeeName) {
+                            return this.truncateText(decodeURIComponent(payeeName), 30);
+                        }
+                    }
+                    return 'PAY WITH UPI';
+
+                case 'attendance':
+                    // Extract location from attendance URL
+                    try {
+                        const url = new URL(data);
+                        const params = new URLSearchParams(url.search);
+                        const location = params.get('loc');
+                        if (location) {
+                            return this.truncateText(decodeURIComponent(location), 30);
+                        }
+                    } catch (e) {
+                        // URL parsing failed
+                    }
+                    return 'CHECK IN';
+
+                case 'file':
+                    // Use file metadata if available
+                    if (options && options.fileMetadata && options.fileMetadata.fileName) {
+                        return this.truncateText(options.fileMetadata.fileName, 30);
+                    }
+                    // Try to extract filename from gofile.io URL
+                    const fileMatch = data.match(/gofile\.io\/d\/([A-Za-z0-9]+)/);
+                    if (fileMatch) {
+                        return `File: ${fileMatch[1]}`;
+                    }
+                    return 'DOWNLOAD FILE';
+
                 default:
                     // Return generic text for other types
                     return 'SCAN ME';
@@ -604,7 +808,13 @@ export class QRGenerator {
                 'email': 'SEND EMAIL',
                 'phone': 'CALL NUMBER',
                 'wifi': 'SHARE WIFI',
-                'vcard': 'SAVE CONTACT'
+                'vcard': 'SAVE CONTACT',
+                'maps': 'VIEW LOCATION',
+                'event': 'ADD TO CALENDAR',
+                'youtube': 'WATCH ON YOUTUBE',
+                'upi': 'PAY WITH UPI',
+                'attendance': 'CHECK IN',
+                'file': 'DOWNLOAD FILE'
             };
             return fallbackMap[qrType] || 'SCAN ME';
         }

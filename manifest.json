@@ -1,7 +1,7 @@
 {
   "name": "QR Code Generator",
   "short_name": "QR Generator",
-  "description": "Generate QR codes for text, URLs, emails, phone numbers, and more",
+  "description": "Generate QR codes for text, URLs, YouTube, emails, phone numbers, and more",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -73,6 +73,20 @@
       "description": "Generate a URL QR code",
       "url": "/?type=url",
       "icons": [{ "src": "/assets/ui-icons/url.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Generate YouTube QR",
+      "short_name": "YouTube QR",
+      "description": "Generate a YouTube QR code",
+      "url": "/?type=youtube",
+      "icons": [{ "src": "/assets/ui-icons/youtube.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Generate UPI QR",
+      "short_name": "UPI QR",
+      "description": "Generate a UPI payment QR code",
+      "url": "/?type=upi",
+      "icons": [{ "src": "/assets/ui-icons/upi.svg", "sizes": "96x96" }]
     }
   ]
 }
