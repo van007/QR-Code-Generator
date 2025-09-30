@@ -95,8 +95,14 @@ export class UIController {
             '4': () => this.selectQRType('phone'),
             '5': () => this.selectQRType('sms'),
             '6': () => this.selectQRType('whatsapp'),
-            '7': () => this.selectQRType('wifi'),
-            '8': () => this.selectQRType('vcard')
+            '7': () => this.selectQRType('youtube'),
+            '8': () => this.selectQRType('wifi'),
+            '9': () => this.selectQRType('vcard'),
+            '0': () => this.selectQRType('maps'),
+            '-': () => this.selectQRType('event'),
+            'u': () => this.selectQRType('upi'),
+            'a': () => this.selectQRType('attendance'),
+            'f': () => this.selectQRType('file')
         };
         
         document.addEventListener('keydown', (e) => {

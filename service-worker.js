@@ -1,4 +1,4 @@
-const CACHE_NAME = 'qr-generator-v0.1.0';
+const CACHE_NAME = 'qr-generator-v0.1.1';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -10,6 +10,8 @@ const urlsToCache = [
   '/js/downloadManager.js',
   '/js/historyManager.js',
   '/js/themeManager.js',
+  '/js/installPrompt.js',
+  '/js/fileUploadManager.js',
   '/assets/logo.png',
   // UI icons
   '/assets/ui-icons/text.svg',
@@ -18,9 +20,14 @@ const urlsToCache = [
   '/assets/ui-icons/phone.svg',
   '/assets/ui-icons/sms.svg',
   '/assets/ui-icons/whatsapp.svg',
+  '/assets/ui-icons/youtube.svg',
   '/assets/ui-icons/wifi.svg',
   '/assets/ui-icons/vcard.svg',
   '/assets/ui-icons/maps.svg',
+  '/assets/ui-icons/event.svg',
+  '/assets/ui-icons/upi.svg',
+  '/assets/ui-icons/attendance.svg',
+  '/assets/ui-icons/file.svg',
   // PWA icons
   '/assets/icons/icon-192x192.png',
   '/assets/icons/icon-512x512.png',
