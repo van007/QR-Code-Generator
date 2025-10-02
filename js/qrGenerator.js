@@ -798,40 +798,24 @@ export class QRGenerator {
                     return 'DOWNLOAD FILE';
 
                 case 'ar':
-                    // Check if experience name is provided in options
-                    if (options && options.arExperienceName) {
-                        return this.truncateText(options.arExperienceName, 30);
-                    }
-
-                    // Try to extract meaningful info from URL
+                    // Extract title from AR viewer URL parameters
                     try {
                         const url = new URL(data);
+                        const params = new URLSearchParams(url.search);
+                        const title = params.get('title');
 
-                        // 8th Wall - extract project/experience name
-                        if (url.hostname.includes('8thwall.app')) {
-                            const pathParts = url.pathname.split('/').filter(p => p);
-                            if (pathParts.length > 0) {
-                                // Use last path segment as experience name
-                                return this.truncateText(pathParts[pathParts.length - 1].replace(/-/g, ' '), 30);
-                            }
+                        if (title) {
+                            return this.truncateText(decodeURIComponent(title), 30);
                         }
 
-                        // AR.js or generic - try to extract filename
-                        if (data.includes('.patt')) {
-                            const filename = url.pathname.split('/').pop();
+                        // Try to extract model filename as fallback
+                        const model = params.get('model');
+                        if (model) {
+                            const modelUrl = new URL(model);
+                            const filename = modelUrl.pathname.split('/').pop();
                             if (filename) {
-                                return this.truncateText(filename.replace('.patt', ''), 30);
+                                return this.truncateText(filename.replace(/\.(glb|gltf)$/i, ''), 30);
                             }
-                        } else if (data.includes('.glb') || data.includes('.gltf')) {
-                            const filename = url.pathname.split('/').pop();
-                            if (filename) {
-                                return this.truncateText(filename.replace(/\.(glb|gltf)$/, ''), 30);
-                            }
-                        }
-
-                        // Fallback to hostname if nothing else works
-                        if (url.hostname && url.hostname !== 'localhost') {
-                            return this.truncateText(url.hostname, 30);
                         }
                     } catch (e) {
                         // URL parsing failed

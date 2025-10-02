@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AR Viewer - QR Code Generator</title>
+    <meta name="description" content="View augmented reality content with AR.js">
+
+    <!-- AR.js and A-Frame -->
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #007AFF;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f5f7;
+            --bg-tertiary: #e5e5ea;
+            --text-primary: #000000;
+            --text-secondary: #6e6e73;
+            --border-color: #d1d1d6;
+            --error-color: #ff3b30;
+            --success-color: #34c759;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #000000;
+                --bg-secondary: #1c1c1e;
+                --bg-tertiary: #2c2c2e;
+                --text-primary: #ffffff;
+                --text-secondary: #98989d;
+                --border-color: #38383a;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow: hidden;
+        }
+
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.3s ease;
+        }
+
+        .loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-logo {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 24px;
+            opacity: 0.8;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--bg-tertiary);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 20px;
+            color: var(--text-secondary);
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .error-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 9998;
+        }
+
+        .error-screen.show {
+            display: flex;
+        }
+
+        .error-icon {
+            width: 64px;
+            height: 64px;
+            color: var(--error-color);
+            margin-bottom: 20px;
+        }
+
+        .error-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .error-message {
+            font-size: 16px;
+            color: var(--text-secondary);
+            text-align: center;
+            max-width: 400px;
+            line-height: 1.5;
+        }
+
+        .instructions-overlay {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: #ffffff;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            text-align: center;
+            max-width: 90%;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        .instructions-overlay.hidden {
+            display: none;
+        }
+
+        .ar-title {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: #ffffff;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            max-width: 90%;
+            text-align: center;
+        }
+
+        a-scene {
+            width: 100%;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <svg class="loading-logo" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="10" y="10" width="80" height="80" rx="8" />
+            <rect x="20" y="20" width="15" height="15" fill="currentColor" />
+            <rect x="20" y="65" width="15" height="15" fill="currentColor" />
+            <rect x="65" y="20" width="15" height="15" fill="currentColor" />
+            <rect x="65" y="65" width="15" height="15" fill="currentColor" />
+        </svg>
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Initializing AR...</div>
+    </div>
+
+    <!-- Error Screen -->
+    <div class="error-screen" id="errorScreen">
+        <svg class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <div class="error-title">AR Error</div>
+        <div class="error-message" id="errorMessage">Something went wrong loading the AR experience.</div>
+    </div>
+
+    <!-- AR Title -->
+    <div class="ar-title" id="arTitle" style="display: none;"></div>
+
+    <!-- Instructions Overlay -->
+    <div class="instructions-overlay" id="instructions">
+        <div>📱 Point your camera at the marker to see AR content</div>
+        <div style="margin-top: 8px; font-size: 12px; opacity: 0.8;">Tap anywhere to dismiss</div>
+    </div>
+
+    <!-- AR Scene -->
+    <a-scene
+        id="arScene"
+        embedded
+        arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
+        vr-mode-ui="enabled: false"
+        renderer="logarithmicDepthBuffer: true; precision: medium;"
+    >
+        <!-- Camera -->
+        <a-entity camera></a-entity>
+
+        <!-- Marker will be inserted here via JavaScript -->
+    </a-scene>
+
+    <script>
+        // Parse URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const markerType = urlParams.get('marker') || 'hiro';
+        const modelUrl = urlParams.get('model');
+        const title = urlParams.get('title');
+
+        const loadingScreen = document.getElementById('loadingScreen');
+        const errorScreen = document.getElementById('errorScreen');
+        const errorMessage = document.getElementById('errorMessage');
+        const arTitle = document.getElementById('arTitle');
+        const instructions = document.getElementById('instructions');
+        const scene = document.getElementById('arScene');
+
+        // Dismiss instructions on tap
+        instructions.addEventListener('click', () => {
+            instructions.classList.add('hidden');
+        });
+
+        // Show title if provided
+        if (title) {
+            arTitle.textContent = decodeURIComponent(title);
+            arTitle.style.display = 'block';
+        }
+
+        // Validate model URL
+        if (!modelUrl) {
+            showError('No 3D model specified', 'Please provide a model URL in the QR code parameters.');
+            return;
+        }
+
+        if (!modelUrl.match(/\.(glb|gltf)$/i)) {
+            showError('Invalid model format', 'Model must be a .glb or .gltf file.');
+            return;
+        }
+
+        // Create marker element
+        const marker = document.createElement('a-marker');
+
+        // Set marker type
+        if (markerType === 'hiro' || markerType === 'kanji') {
+            marker.setAttribute('preset', markerType);
+        } else if (markerType.startsWith('http')) {
+            // Custom pattern URL
+            marker.setAttribute('type', 'pattern');
+            marker.setAttribute('url', markerType);
+        } else {
+            showError('Invalid marker type', 'Marker must be "hiro", "kanji", or a valid pattern URL.');
+            return;
+        }
+
+        // Create 3D model entity
+        const model = document.createElement('a-entity');
+        model.setAttribute('gltf-model', modelUrl);
+        model.setAttribute('scale', '0.5 0.5 0.5');
+        model.setAttribute('position', '0 0 0');
+        model.setAttribute('rotation', '0 0 0');
+        model.setAttribute('animation', 'property: rotation; to: 0 360 0; loop: true; dur: 10000; easing: linear');
+
+        // Add model to marker
+        marker.appendChild(model);
+
+        // Add marker to scene
+        scene.appendChild(marker);
+
+        // Hide loading screen when AR is ready
+        scene.addEventListener('loaded', () => {
+            setTimeout(() => {
+                loadingScreen.classList.add('hidden');
+            }, 1000);
+        });
+
+        // Handle marker found/lost events
+        marker.addEventListener('markerFound', () => {
+            console.log('Marker detected');
+            instructions.classList.add('hidden');
+        });
+
+        marker.addEventListener('markerLost', () => {
+            console.log('Marker lost');
+        });
+
+        // Error handling
+        function showError(title, message) {
+            loadingScreen.classList.add('hidden');
+            errorScreen.classList.add('show');
+            document.querySelector('.error-title').textContent = title;
+            errorMessage.textContent = message;
+        }
+
+        // Handle model loading errors
+        model.addEventListener('model-error', (e) => {
+            console.error('Model loading error:', e);
+            showError('Model Load Error', 'Failed to load the 3D model. Please check the URL and try again.');
+        });
+
+        // Camera permission error handling
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .catch(err => {
+                console.error('Camera permission error:', err);
+                showError('Camera Access Denied', 'Please allow camera access to use AR features.');
+            });
+    </script>
+</body>
+</html>

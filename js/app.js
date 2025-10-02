@@ -207,25 +207,15 @@ class QRCodeApp {
             });
         });
 
-        // AR platform change listener
-        document.getElementById('arPlatform').addEventListener('change', (e) => {
-            const platform = e.target.value;
-            const markerRow = document.getElementById('arMarkerRow');
-            const wallRow = document.getElementById('ar8thWallRow');
-            const customRow = document.getElementById('arCustomRow');
+        // AR marker type change listener
+        document.getElementById('arMarkerType').addEventListener('change', (e) => {
+            const markerType = e.target.value;
+            const customPatternRow = document.getElementById('arCustomPatternRow');
 
-            // Hide all rows first
-            markerRow.classList.add('hidden');
-            wallRow.classList.add('hidden');
-            customRow.classList.add('hidden');
-
-            // Show appropriate row based on platform
-            if (platform === 'arjs') {
-                markerRow.classList.remove('hidden');
-            } else if (platform === '8thwall') {
-                wallRow.classList.remove('hidden');
-            } else if (platform === 'custom' || platform === 'webxr') {
-                customRow.classList.remove('hidden');
+            if (markerType === 'custom') {
+                customPatternRow.classList.remove('hidden');
+            } else {
+                customPatternRow.classList.add('hidden');
             }
         });
 
@@ -643,49 +633,48 @@ class QRCodeApp {
                 return fileUploadData.url;
 
             case 'ar':
-                const arPlatform = document.getElementById('arPlatform').value;
-                let arUrl = '';
+                const markerType = document.getElementById('arMarkerType').value;
+                const modelUrl = document.getElementById('arModelUrl').value.trim();
+                const experienceName = document.getElementById('arExperienceName').value.trim();
 
-                // Validation and URL building based on platform
-                if (arPlatform === 'arjs') {
-                    const markerUrl = document.getElementById('arMarkerUrl').value.trim();
-                    if (!markerUrl) {
-                        this.uiController.showNotification('Marker/Model URL is required', 'error');
-                        return null;
-                    }
-                    // AR.js format - link directly to the marker/model URL
-                    // Users can host their own AR.js viewer or use this URL directly
-                    arUrl = markerUrl;
-                } else if (arPlatform === '8thwall') {
-                    const wallUrl = document.getElementById('ar8thWallUrl').value.trim();
-                    if (!wallUrl) {
-                        this.uiController.showNotification('8th Wall Experience URL is required', 'error');
-                        return null;
-                    }
-                    if (!wallUrl.match(/^https?:\/\//)) {
-                        arUrl = 'https://' + wallUrl;
-                    } else {
-                        arUrl = wallUrl;
-                    }
-                } else if (arPlatform === 'custom' || arPlatform === 'webxr') {
-                    const customUrl = document.getElementById('arCustomUrl').value.trim();
-                    if (!customUrl) {
-                        this.uiController.showNotification('Custom AR URL is required', 'error');
-                        return null;
-                    }
-                    if (!customUrl.match(/^https?:\/\//)) {
-                        arUrl = 'https://' + customUrl;
-                    } else {
-                        arUrl = customUrl;
-                    }
-                }
-
-                if (!arUrl) {
-                    this.uiController.showNotification('Please provide a valid AR URL', 'error');
+                // Validate model URL
+                if (!modelUrl) {
+                    this.uiController.showNotification('3D Model URL is required', 'error');
                     return null;
                 }
 
-                return arUrl;
+                if (!modelUrl.match(/\.(glb|gltf)$/i)) {
+                    this.uiController.showNotification('Model must be a .glb or .gltf file', 'error');
+                    return null;
+                }
+
+                // Determine marker parameter
+                let markerParam = markerType;
+                if (markerType === 'custom') {
+                    const patternUrl = document.getElementById('arPatternUrl').value.trim();
+                    if (!patternUrl) {
+                        this.uiController.showNotification('Pattern File URL is required for custom markers', 'error');
+                        return null;
+                    }
+                    if (!patternUrl.match(/\.patt$/i)) {
+                        this.uiController.showNotification('Pattern file must be a .patt file', 'error');
+                        return null;
+                    }
+                    markerParam = patternUrl;
+                }
+
+                // Build AR viewer URL
+                const baseUrl = 'https://van007.github.io/QR-Code-Generator/ar.html';
+                const arParams = new URLSearchParams({
+                    marker: markerParam,
+                    model: modelUrl
+                });
+
+                if (experienceName) {
+                    arParams.append('title', experienceName);
+                }
+
+                return `${baseUrl}?${arParams.toString()}`;
 
             default:
                 return null;
@@ -1128,24 +1117,39 @@ class QRCodeApp {
                 break;
 
             case 'ar':
-                // Parse the AR URL to determine platform and restore fields
-                document.getElementById('arExperienceName').value = ''; // Reset name field
+                // Parse AR viewer URL parameters
+                try {
+                    const url = new URL(data);
+                    const params = new URLSearchParams(url.search);
 
-                // Simple heuristic to detect platform
-                if (data.includes('8thwall.app')) {
-                    document.getElementById('arPlatform').value = '8thwall';
-                    document.getElementById('ar8thWallUrl').value = data;
-                    // Trigger platform change to show correct fields
-                    document.getElementById('arPlatform').dispatchEvent(new Event('change'));
-                } else if (data.includes('.patt') || data.includes('.glb') || data.includes('.gltf')) {
-                    document.getElementById('arPlatform').value = 'arjs';
-                    document.getElementById('arMarkerUrl').value = data;
-                    document.getElementById('arPlatform').dispatchEvent(new Event('change'));
-                } else {
-                    // Default to custom URL
-                    document.getElementById('arPlatform').value = 'custom';
-                    document.getElementById('arCustomUrl').value = data;
-                    document.getElementById('arPlatform').dispatchEvent(new Event('change'));
+                    const markerParam = params.get('marker');
+                    const modelParam = params.get('model');
+                    const titleParam = params.get('title');
+
+                    // Restore marker type
+                    if (markerParam === 'hiro' || markerParam === 'kanji') {
+                        document.getElementById('arMarkerType').value = markerParam;
+                    } else if (markerParam && markerParam.startsWith('http')) {
+                        document.getElementById('arMarkerType').value = 'custom';
+                        document.getElementById('arPatternUrl').value = markerParam;
+                        document.getElementById('arMarkerType').dispatchEvent(new Event('change'));
+                    } else {
+                        document.getElementById('arMarkerType').value = 'hiro';
+                    }
+
+                    // Restore model URL
+                    if (modelParam) {
+                        document.getElementById('arModelUrl').value = modelParam;
+                    }
+
+                    // Restore experience name
+                    if (titleParam) {
+                        document.getElementById('arExperienceName').value = decodeURIComponent(titleParam);
+                    } else {
+                        document.getElementById('arExperienceName').value = '';
+                    }
+                } catch (e) {
+                    console.error('Failed to parse AR URL:', e);
                 }
                 break;
         }

@@ -496,38 +496,29 @@
                         <div class="form-group hidden" data-type="ar">
                             <div class="form-row">
                                 <div class="form-col-full">
-                                    <label for="arPlatform" class="form-label">AR Platform <span style="color: var(--error-color);">*</span></label>
-                                    <select id="arPlatform" class="form-select">
-                                        <option value="arjs">AR.js (Marker-based)</option>
-                                        <option value="webxr">WebXR (Custom URL)</option>
-                                        <option value="8thwall">8th Wall</option>
-                                        <option value="custom">Custom URL</option>
+                                    <label for="arMarkerType" class="form-label">Marker Type <span style="color: var(--error-color);">*</span></label>
+                                    <select id="arMarkerType" class="form-select">
+                                        <option value="hiro">Hiro Preset (Default)</option>
+                                        <option value="kanji">Kanji Preset</option>
+                                        <option value="custom">Custom Pattern File</option>
                                     </select>
-                                    <div class="form-hint">Choose the AR platform for your experience.</div>
+                                    <div class="form-hint">Preset markers work out-of-the-box. <a href="https://jeromeetienne.github.io/AR.js/three.js/examples/marker-training/examples/generator.html" target="_blank" style="color: var(--primary-color);">Generate custom marker</a></div>
                                 </div>
                             </div>
 
-                            <div class="form-row" id="arMarkerRow">
+                            <div class="form-row hidden" id="arCustomPatternRow">
                                 <div class="form-col-full">
-                                    <label for="arMarkerUrl" class="form-label">Marker/Model URL <span style="color: var(--error-color);">*</span></label>
-                                    <input type="url" id="arMarkerUrl" class="form-input" placeholder="https://example.com/marker.patt or model.glb">
-                                    <div class="form-hint">URL to AR marker pattern file (.patt) or 3D model (.glb, .gltf).</div>
+                                    <label for="arPatternUrl" class="form-label">Pattern File URL <span style="color: var(--error-color);">*</span></label>
+                                    <input type="url" id="arPatternUrl" class="form-input" placeholder="https://example.com/pattern.patt">
+                                    <div class="form-hint">URL to your custom .patt marker file (must be publicly accessible).</div>
                                 </div>
                             </div>
 
-                            <div class="form-row hidden" id="ar8thWallRow">
+                            <div class="form-row">
                                 <div class="form-col-full">
-                                    <label for="ar8thWallUrl" class="form-label">8th Wall Experience URL <span style="color: var(--error-color);">*</span></label>
-                                    <input type="url" id="ar8thWallUrl" class="form-input" placeholder="https://yourproject.8thwall.app/experience-name">
-                                    <div class="form-hint">Full URL to your published 8th Wall AR experience.</div>
-                                </div>
-                            </div>
-
-                            <div class="form-row hidden" id="arCustomRow">
-                                <div class="form-col-full">
-                                    <label for="arCustomUrl" class="form-label">Custom AR URL <span style="color: var(--error-color);">*</span></label>
-                                    <input type="url" id="arCustomUrl" class="form-input" placeholder="https://your-ar-experience.com">
-                                    <div class="form-hint">Direct URL to your AR web experience.</div>
+                                    <label for="arModelUrl" class="form-label">3D Model URL <span style="color: var(--error-color);">*</span></label>
+                                    <input type="url" id="arModelUrl" class="form-input" placeholder="https://example.com/model.glb">
+                                    <div class="form-hint">URL to your 3D model (.glb or .gltf format). Try: <a href="https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0" target="_blank" style="color: var(--primary-color);">Sample models</a></div>
                                 </div>
                             </div>
 
@@ -535,7 +526,7 @@
                                 <div class="form-col-full">
                                     <label for="arExperienceName" class="form-label">Experience Name (Optional)</label>
                                     <input type="text" id="arExperienceName" class="form-input" placeholder="My AR Experience">
-                                    <div class="form-hint">Give your AR experience a descriptive name for the frame (if used).</div>
+                                    <div class="form-hint">Name shown when AR experience loads (used in frame text if enabled).</div>
                                 </div>
                             </div>
                         </div>
