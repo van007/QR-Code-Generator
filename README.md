@@ -3,7 +3,7 @@
   
   # QR Code Generator
 
-  **Version 0.1.1**
+  **Version 0.1.2**
 
   A modern, responsive web application for generating QR codes with extensive customization options. Features an intuitive layout with icon-based navigation, built with vanilla JavaScript and designed to work seamlessly across all devices.
 
@@ -32,6 +32,7 @@
 - **UPI Payment** - Generate UPI payment QR codes for instant payments (India) with optional amount and transaction notes
 - **Attendance** - Create attendance tracking QR codes with location check-in/out, geolocation capture, and WhatsApp/Email reporting
 - **File Upload** - Share files via QR codes using gofile.io API with upload progress tracking and download link generation
+- **AR Experience** - Create augmented reality QR codes using AR.js for marker-based AR with 3D models (.glb/.gltf)
 
 ### Customization Options
 - **Size Control** - Adjustable from 128px to 512px
@@ -50,8 +51,8 @@
 
 ### Frame Feature
 - **Auto Frame** - Two display options for select QR types:
-  - **Standard Text**: Generic labels (e.g., "GO TO WEBSITE", "SEND EMAIL", "ADD TO CALENDAR", "WATCH ON YOUTUBE", "DOWNLOAD FILE")
-  - **Contextual Data**: Shows actual content (URL, email address, phone number, WiFi network name, contact name, event name, location name, YouTube channel/video info, UPI payee name, filename)
+  - **Standard Text**: Generic labels (e.g., "GO TO WEBSITE", "SEND EMAIL", "ADD TO CALENDAR", "WATCH ON YOUTUBE", "DOWNLOAD FILE", "VIEW IN AR")
+  - **Contextual Data**: Shows actual content (URL, email address, phone number, WiFi network name, contact name, event name, location name, YouTube channel/video info, UPI payee name, filename, AR experience name)
   - Single option types (Plain Text, SMS, WhatsApp) show standard text only
 - **Custom Frame** - Add your own custom text (up to 30 characters)
 - **Professional Design** - Frame uses QR foreground color with contrasting text
@@ -162,6 +163,10 @@ Share files via QR codes using gofile.io API
 Generated QR code with download link for shared files
 ![File Download QR Code](assets/Screenshots/13.file-download-qr-code.png)
 
+#### 14. AR Experience QR Code
+Create augmented reality experiences with AR.js - scan to view 3D models on markers
+![AR Experience QR Code](assets/Screenshots/14.ar-experience-qr-code.png)
+
 ### Additional Features
 
 #### Install as Progressive Web App
@@ -178,6 +183,7 @@ Switch between light and dark themes
 
 ```
 ├── index.html              # Main HTML file
+├── ar.html                # AR.js viewer page for augmented reality
 ├── manifest.json          # PWA manifest configuration
 ├── service-worker.js      # Service worker for offline support
 ├── offline.html           # Offline fallback page
@@ -207,7 +213,7 @@ Switch between light and dark themes
 - `Alt + D` - Download as PNG
 - `Alt + C` - Copy to clipboard
 - `Alt + T` - Toggle theme
-- `Alt + 1-9, 0, -, U, A, F` - Quick switch QR type (1=Text, 2=URL, 3=Email, 4=Phone, 5=SMS, 6=WhatsApp, 7=YouTube, 8=WiFi, 9=vCard, 0=Maps, -=Event, U=UPI, A=Attendance, F=File)
+- `Alt + 1-9, 0, -, U, A, F, R` - Quick switch QR type (1=Text, 2=URL, 3=Email, 4=Phone, 5=SMS, 6=WhatsApp, 7=YouTube, 8=WiFi, 9=vCard, 0=Maps, -=Event, U=UPI, A=Attendance, F=File, R=AR)
 - `Ctrl/Cmd + Shift + L` - Toggle theme
 
 ## Browser Support
