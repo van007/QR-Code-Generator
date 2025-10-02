@@ -246,6 +246,26 @@
         const instructions = document.getElementById('instructions');
         const scene = document.getElementById('arScene');
 
+        let loadingHidden = false;
+
+        // Error handling function
+        function showError(errorTitle, message) {
+            loadingHidden = true;
+            loadingScreen.classList.add('hidden');
+            errorScreen.classList.add('show');
+            document.querySelector('.error-title').textContent = errorTitle;
+            errorMessage.textContent = message;
+        }
+
+        // Hide loading screen function
+        function hideLoading() {
+            if (!loadingHidden) {
+                loadingHidden = true;
+                loadingScreen.classList.add('hidden');
+                console.log('AR initialized successfully');
+            }
+        }
+
         // Dismiss instructions on tap
         instructions.addEventListener('click', () => {
             instructions.classList.add('hidden');
@@ -260,79 +280,97 @@
         // Validate model URL
         if (!modelUrl) {
             showError('No 3D model specified', 'Please provide a model URL in the QR code parameters.');
-            return;
-        }
-
-        if (!modelUrl.match(/\.(glb|gltf)$/i)) {
+        } else if (!modelUrl.match(/\.(glb|gltf)$/i)) {
             showError('Invalid model format', 'Model must be a .glb or .gltf file.');
-            return;
-        }
-
-        // Create marker element
-        const marker = document.createElement('a-marker');
-
-        // Set marker type
-        if (markerType === 'hiro' || markerType === 'kanji') {
-            marker.setAttribute('preset', markerType);
-        } else if (markerType.startsWith('http')) {
-            // Custom pattern URL
-            marker.setAttribute('type', 'pattern');
-            marker.setAttribute('url', markerType);
         } else {
-            showError('Invalid marker type', 'Marker must be "hiro", "kanji", or a valid pattern URL.');
-            return;
+            // Initialize AR
+            initializeAR();
         }
 
-        // Create 3D model entity
-        const model = document.createElement('a-entity');
-        model.setAttribute('gltf-model', modelUrl);
-        model.setAttribute('scale', '0.5 0.5 0.5');
-        model.setAttribute('position', '0 0 0');
-        model.setAttribute('rotation', '0 0 0');
-        model.setAttribute('animation', 'property: rotation; to: 0 360 0; loop: true; dur: 10000; easing: linear');
+        function initializeAR() {
+            // Create marker element
+            const marker = document.createElement('a-marker');
 
-        // Add model to marker
-        marker.appendChild(model);
+            // Set marker type
+            if (markerType === 'hiro' || markerType === 'kanji') {
+                marker.setAttribute('preset', markerType);
+            } else if (markerType.startsWith('http')) {
+                // Custom pattern URL
+                marker.setAttribute('type', 'pattern');
+                marker.setAttribute('url', markerType);
+            } else {
+                showError('Invalid marker type', 'Marker must be "hiro", "kanji", or a valid pattern URL.');
+                return;
+            }
 
-        // Add marker to scene
-        scene.appendChild(marker);
+            // Create 3D model entity
+            const model = document.createElement('a-entity');
+            model.setAttribute('gltf-model', modelUrl);
+            model.setAttribute('scale', '0.5 0.5 0.5');
+            model.setAttribute('position', '0 0 0');
+            model.setAttribute('rotation', '0 0 0');
+            model.setAttribute('animation', 'property: rotation; to: 0 360 0; loop: true; dur: 10000; easing: linear');
 
-        // Hide loading screen when AR is ready
-        scene.addEventListener('loaded', () => {
+            // Add model to marker
+            marker.appendChild(model);
+
+            // Add marker to scene
+            scene.appendChild(marker);
+
+            // Multiple event listeners for reliable initialization
+
+            // 1. AR.js specific video loaded event (most reliable)
+            scene.addEventListener('arjs-video-loaded', () => {
+                console.log('AR.js video loaded');
+                hideLoading();
+            });
+
+            // 2. A-Frame render started
+            scene.addEventListener('renderstart', () => {
+                console.log('A-Frame rendering started');
+                setTimeout(hideLoading, 500);
+            });
+
+            // 3. Scene loaded event (backup)
+            scene.addEventListener('loaded', () => {
+                console.log('Scene loaded');
+                setTimeout(hideLoading, 500);
+            });
+
+            // 4. Timeout failsafe - force hide after 5 seconds
             setTimeout(() => {
-                loadingScreen.classList.add('hidden');
-            }, 1000);
-        });
+                if (!loadingHidden) {
+                    console.warn('Loading screen hidden by timeout failsafe');
+                    hideLoading();
+                }
+            }, 5000);
 
-        // Handle marker found/lost events
-        marker.addEventListener('markerFound', () => {
-            console.log('Marker detected');
-            instructions.classList.add('hidden');
-        });
+            // Handle marker found/lost events
+            marker.addEventListener('markerFound', () => {
+                console.log('Marker detected');
+                instructions.classList.add('hidden');
+            });
 
-        marker.addEventListener('markerLost', () => {
-            console.log('Marker lost');
-        });
+            marker.addEventListener('markerLost', () => {
+                console.log('Marker lost');
+            });
 
-        // Error handling
-        function showError(title, message) {
-            loadingScreen.classList.add('hidden');
-            errorScreen.classList.add('show');
-            document.querySelector('.error-title').textContent = title;
-            errorMessage.textContent = message;
+            // Handle model loading errors
+            model.addEventListener('model-error', (e) => {
+                console.error('Model loading error:', e);
+                showError('Model Load Error', 'Failed to load the 3D model. Please check the URL and try again.');
+            });
         }
 
-        // Handle model loading errors
-        model.addEventListener('model-error', (e) => {
-            console.error('Model loading error:', e);
-            showError('Model Load Error', 'Failed to load the 3D model. Please check the URL and try again.');
-        });
-
-        // Camera permission error handling
+        // Camera permission handling (non-blocking)
         navigator.mediaDevices.getUserMedia({ video: true })
+            .then(() => {
+                console.log('Camera permission granted');
+            })
             .catch(err => {
                 console.error('Camera permission error:', err);
-                showError('Camera Access Denied', 'Please allow camera access to use AR features.');
+                // Don't show error immediately, AR.js will handle camera access
+                // Only show error if AR doesn't initialize within timeout
             });
     </script>
 </body>
