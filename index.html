@@ -502,7 +502,7 @@
                                         <option value="kanji">Kanji Preset</option>
                                         <option value="custom">Custom Pattern File</option>
                                     </select>
-                                    <div class="form-hint">Preset markers work out-of-the-box. <a href="https://jeromeetienne.github.io/AR.js/three.js/examples/marker-training/examples/generator.html" target="_blank" style="color: var(--primary-color);">Generate custom marker</a></div>
+                                    <div id="arMarkerHint" class="form-hint">Preset marker works out-of-the-box. <a href="assets/ar-example/marker/Hiro_marker_ARjs.png" download style="color: var(--primary-color);">Download Hiro Marker</a> | <a href="https://jeromeetienne.github.io/AR.js/three.js/examples/marker-training/examples/generator.html" target="_blank" style="color: var(--primary-color);">Generate Custom Marker</a></div>
                                 </div>
                             </div>
 
@@ -517,8 +517,8 @@
                             <div class="form-row">
                                 <div class="form-col-full">
                                     <label for="arModelUrl" class="form-label">3D Model URL <span style="color: var(--error-color);">*</span></label>
-                                    <input type="url" id="arModelUrl" class="form-input" placeholder="https://example.com/model.glb">
-                                    <div class="form-hint">URL to your 3D model (.glb or .gltf format). Try: <a href="https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0" target="_blank" style="color: var(--primary-color);">Sample models</a></div>
+                                    <input type="url" id="arModelUrl" class="form-input" placeholder="assets/ar-example/shiba/scene.gltf">
+                                    <div class="form-hint">URL to your 3D model (.glb or .gltf format). Must be CORS-enabled (GitHub raw URLs work). <a href="#" id="arTrySample" style="color: var(--primary-color);">Try Sample</a></div>
                                 </div>
                             </div>
 

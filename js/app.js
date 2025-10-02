@@ -211,12 +211,26 @@ class QRCodeApp {
         document.getElementById('arMarkerType').addEventListener('change', (e) => {
             const markerType = e.target.value;
             const customPatternRow = document.getElementById('arCustomPatternRow');
+            const markerHint = document.getElementById('arMarkerHint');
 
             if (markerType === 'custom') {
                 customPatternRow.classList.remove('hidden');
+                markerHint.innerHTML = 'Create your own marker pattern. <a href="https://jeromeetienne.github.io/AR.js/three.js/examples/marker-training/examples/generator.html" target="_blank" style="color: var(--primary-color);">Generate Custom Marker</a>';
             } else {
                 customPatternRow.classList.add('hidden');
+
+                if (markerType === 'hiro') {
+                    markerHint.innerHTML = 'Preset marker works out-of-the-box. <a href="assets/ar-example/marker/Hiro_marker_ARjs.png" download style="color: var(--primary-color);">Download Hiro Marker</a> | <a href="https://jeromeetienne.github.io/AR.js/three.js/examples/marker-training/examples/generator.html" target="_blank" style="color: var(--primary-color);">Generate Custom Marker</a>';
+                } else if (markerType === 'kanji') {
+                    markerHint.innerHTML = 'Preset marker works out-of-the-box. <a href="assets/ar-example/marker/Kanji_marker_ARjs.png" download style="color: var(--primary-color);">Download Kanji Marker</a> | <a href="https://jeromeetienne.github.io/AR.js/three.js/examples/marker-training/examples/generator.html" target="_blank" style="color: var(--primary-color);">Generate Custom Marker</a>';
+                }
             }
+        });
+
+        // AR Try Sample link handler
+        document.getElementById('arTrySample').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('arModelUrl').value = 'assets/ar-example/shiba/scene.gltf';
         });
 
         document.getElementById('downloadPNG').addEventListener('click', () => {
