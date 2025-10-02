@@ -120,6 +120,10 @@
                         <img src="assets/ui-icons/file.svg" alt="File icon" class="type-icon">
                         <span>File Upload</span>
                     </button>
+                    <button class="type-menu-item" data-type="ar">
+                        <img src="assets/ui-icons/ar.svg" alt="AR icon" class="type-icon">
+                        <span>AR Experience</span>
+                    </button>
                 </nav>
                 <select id="qrType" class="mobile-type-select">
                     <option value="text">Plain Text</option>
@@ -136,6 +140,7 @@
                     <option value="upi">UPI Payment</option>
                     <option value="attendance">Attendance</option>
                     <option value="file">File Upload</option>
+                    <option value="ar">AR Experience</option>
                 </select>
             </div>
 
@@ -484,6 +489,44 @@
                             <div class="form-row">
                                 <div class="form-col-full">
                                     <div class="form-hint">After uploading, a QR code will be generated that links to your file. Anyone with the QR code can download the file.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group hidden" data-type="ar">
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label for="arMarkerType" class="form-label">Marker Type <span style="color: var(--error-color);">*</span></label>
+                                    <select id="arMarkerType" class="form-select">
+                                        <option value="hiro">Hiro Preset (Default)</option>
+                                        <option value="kanji">Kanji Preset</option>
+                                        <option value="custom">Custom Pattern File</option>
+                                    </select>
+                                    <div class="form-hint">Preset markers work out-of-the-box. <a href="https://jeromeetienne.github.io/AR.js/three.js/examples/marker-training/examples/generator.html" target="_blank" style="color: var(--primary-color);">Generate custom marker</a></div>
+                                </div>
+                            </div>
+
+                            <div class="form-row hidden" id="arCustomPatternRow">
+                                <div class="form-col-full">
+                                    <label for="arPatternUrl" class="form-label">Pattern File URL <span style="color: var(--error-color);">*</span></label>
+                                    <input type="url" id="arPatternUrl" class="form-input" placeholder="https://example.com/pattern.patt">
+                                    <div class="form-hint">URL to your custom .patt marker file (must be publicly accessible).</div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label for="arModelUrl" class="form-label">3D Model URL <span style="color: var(--error-color);">*</span></label>
+                                    <input type="url" id="arModelUrl" class="form-input" placeholder="https://example.com/model.glb">
+                                    <div class="form-hint">URL to your 3D model (.glb or .gltf format). Try: <a href="https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0" target="_blank" style="color: var(--primary-color);">Sample models</a></div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label for="arExperienceName" class="form-label">Experience Name (Optional)</label>
+                                    <input type="text" id="arExperienceName" class="form-input" placeholder="My AR Experience">
+                                    <div class="form-hint">Name shown when AR experience loads (used in frame text if enabled).</div>
                                 </div>
                             </div>
                         </div>

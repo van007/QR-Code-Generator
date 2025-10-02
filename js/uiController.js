@@ -102,7 +102,8 @@ export class UIController {
             '-': () => this.selectQRType('event'),
             'u': () => this.selectQRType('upi'),
             'a': () => this.selectQRType('attendance'),
-            'f': () => this.selectQRType('file')
+            'f': () => this.selectQRType('file'),
+            'r': () => this.selectQRType('ar')
         };
         
         document.addEventListener('keydown', (e) => {

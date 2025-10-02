@@ -21,7 +21,8 @@ const QR_TYPE_COLORS = {
     event: { dark: '#FFD60A', light: '#000000' },
     upi: { dark: '#6B3AA5', light: '#FFFFFF' },
     attendance: { dark: '#00C853', light: '#FFFFFF' },
-    file: { dark: '#FF5722', light: '#FFFFFF' }
+    file: { dark: '#FF5722', light: '#FFFFFF' },
+    ar: { dark: '#FF00FF', light: '#FFFFFF' }
 };
 
 class QRCodeApp {
@@ -206,6 +207,18 @@ class QRCodeApp {
             });
         });
 
+        // AR marker type change listener
+        document.getElementById('arMarkerType').addEventListener('change', (e) => {
+            const markerType = e.target.value;
+            const customPatternRow = document.getElementById('arCustomPatternRow');
+
+            if (markerType === 'custom') {
+                customPatternRow.classList.remove('hidden');
+            } else {
+                customPatternRow.classList.add('hidden');
+            }
+        });
+
         document.getElementById('downloadPNG').addEventListener('click', () => {
             if (this.currentQRCode) {
                 const downloadOptions = { ...this.currentQRCode.options };
@@ -300,6 +313,14 @@ class QRCodeApp {
         // Add file metadata if available
         if (type === 'file' && this.currentFileMetadata) {
             options.fileMetadata = this.currentFileMetadata;
+        }
+
+        // Add AR experience name if available
+        if (type === 'ar') {
+            const experienceName = document.getElementById('arExperienceName').value.trim();
+            if (experienceName) {
+                options.arExperienceName = experienceName;
+            }
         }
         
         try {
@@ -610,6 +631,50 @@ class QRCodeApp {
                 }
 
                 return fileUploadData.url;
+
+            case 'ar':
+                const markerType = document.getElementById('arMarkerType').value;
+                const modelUrl = document.getElementById('arModelUrl').value.trim();
+                const experienceName = document.getElementById('arExperienceName').value.trim();
+
+                // Validate model URL
+                if (!modelUrl) {
+                    this.uiController.showNotification('3D Model URL is required', 'error');
+                    return null;
+                }
+
+                if (!modelUrl.match(/\.(glb|gltf)$/i)) {
+                    this.uiController.showNotification('Model must be a .glb or .gltf file', 'error');
+                    return null;
+                }
+
+                // Determine marker parameter
+                let markerParam = markerType;
+                if (markerType === 'custom') {
+                    const patternUrl = document.getElementById('arPatternUrl').value.trim();
+                    if (!patternUrl) {
+                        this.uiController.showNotification('Pattern File URL is required for custom markers', 'error');
+                        return null;
+                    }
+                    if (!patternUrl.match(/\.patt$/i)) {
+                        this.uiController.showNotification('Pattern file must be a .patt file', 'error');
+                        return null;
+                    }
+                    markerParam = patternUrl;
+                }
+
+                // Build AR viewer URL
+                const baseUrl = 'https://van007.github.io/QR-Code-Generator/ar.html';
+                const arParams = new URLSearchParams({
+                    marker: markerParam,
+                    model: modelUrl
+                });
+
+                if (experienceName) {
+                    arParams.append('title', experienceName);
+                }
+
+                return `${baseUrl}?${arParams.toString()}`;
 
             default:
                 return null;
@@ -1050,6 +1115,43 @@ class QRCodeApp {
                 // Note: Cannot restore actual file, only the URL
                 this.uiController.showNotification('File URL restored. Original file cannot be restored.', 'info');
                 break;
+
+            case 'ar':
+                // Parse AR viewer URL parameters
+                try {
+                    const url = new URL(data);
+                    const params = new URLSearchParams(url.search);
+
+                    const markerParam = params.get('marker');
+                    const modelParam = params.get('model');
+                    const titleParam = params.get('title');
+
+                    // Restore marker type
+                    if (markerParam === 'hiro' || markerParam === 'kanji') {
+                        document.getElementById('arMarkerType').value = markerParam;
+                    } else if (markerParam && markerParam.startsWith('http')) {
+                        document.getElementById('arMarkerType').value = 'custom';
+                        document.getElementById('arPatternUrl').value = markerParam;
+                        document.getElementById('arMarkerType').dispatchEvent(new Event('change'));
+                    } else {
+                        document.getElementById('arMarkerType').value = 'hiro';
+                    }
+
+                    // Restore model URL
+                    if (modelParam) {
+                        document.getElementById('arModelUrl').value = modelParam;
+                    }
+
+                    // Restore experience name
+                    if (titleParam) {
+                        document.getElementById('arExperienceName').value = decodeURIComponent(titleParam);
+                    } else {
+                        document.getElementById('arExperienceName').value = '';
+                    }
+                } catch (e) {
+                    console.error('Failed to parse AR URL:', e);
+                }
+                break;
         }
     }
 
@@ -1244,7 +1346,7 @@ class QRCodeApp {
     updateAutoFrameOptions() {
         const qrType = document.getElementById('qrType').value;
         const container = document.querySelector('.frame-options-container');
-        
+
         // Define which types have dual options
         const dualOptionTypes = {
             'url': { generic: 'GO TO WEBSITE', contextual: 'Show URL' },
@@ -1257,7 +1359,8 @@ class QRCodeApp {
             'youtube': { generic: 'WATCH ON YOUTUBE', contextual: 'Show Channel/Video Info' },
             'upi': { generic: 'PAY WITH UPI', contextual: 'Show Payee Name' },
             'attendance': { generic: 'CHECK IN', contextual: 'Show Location' },
-            'file': { generic: 'DOWNLOAD FILE', contextual: 'Show Filename' }
+            'file': { generic: 'DOWNLOAD FILE', contextual: 'Show Filename' },
+            'ar': { generic: 'VIEW IN AR', contextual: 'Show Experience Name' }
         };
         
         const singleOptionTypes = {

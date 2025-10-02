@@ -579,7 +579,8 @@ export class QRGenerator {
                     'event': 'ADD TO CALENDAR',
                     'upi': 'PAY WITH UPI',
                     'attendance': 'CHECK IN',
-                    'file': 'DOWNLOAD FILE'
+                    'file': 'DOWNLOAD FILE',
+                    'ar': 'VIEW IN AR'
                 };
                 frameText = frameTextMap[options.qrType] || 'SCAN ME';
             }
@@ -796,6 +797,32 @@ export class QRGenerator {
                     }
                     return 'DOWNLOAD FILE';
 
+                case 'ar':
+                    // Extract title from AR viewer URL parameters
+                    try {
+                        const url = new URL(data);
+                        const params = new URLSearchParams(url.search);
+                        const title = params.get('title');
+
+                        if (title) {
+                            return this.truncateText(decodeURIComponent(title), 30);
+                        }
+
+                        // Try to extract model filename as fallback
+                        const model = params.get('model');
+                        if (model) {
+                            const modelUrl = new URL(model);
+                            const filename = modelUrl.pathname.split('/').pop();
+                            if (filename) {
+                                return this.truncateText(filename.replace(/\.(glb|gltf)$/i, ''), 30);
+                            }
+                        }
+                    } catch (e) {
+                        // URL parsing failed
+                    }
+
+                    return 'VIEW IN AR';
+
                 default:
                     // Return generic text for other types
                     return 'SCAN ME';
@@ -814,7 +841,8 @@ export class QRGenerator {
                 'youtube': 'WATCH ON YOUTUBE',
                 'upi': 'PAY WITH UPI',
                 'attendance': 'CHECK IN',
-                'file': 'DOWNLOAD FILE'
+                'file': 'DOWNLOAD FILE',
+                'ar': 'VIEW IN AR'
             };
             return fallbackMap[qrType] || 'SCAN ME';
         }
