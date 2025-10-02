@@ -1,4 +1,4 @@
-const CACHE_NAME = 'qr-generator-v0.1.1';
+const CACHE_NAME = 'qr-generator-v0.1.2';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -28,6 +28,7 @@ const urlsToCache = [
   '/assets/ui-icons/upi.svg',
   '/assets/ui-icons/attendance.svg',
   '/assets/ui-icons/file.svg',
+  '/assets/ui-icons/ar.svg',
   // PWA icons
   '/assets/icons/icon-192x192.png',
   '/assets/icons/icon-512x512.png',

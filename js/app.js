@@ -21,7 +21,8 @@ const QR_TYPE_COLORS = {
     event: { dark: '#FFD60A', light: '#000000' },
     upi: { dark: '#6B3AA5', light: '#FFFFFF' },
     attendance: { dark: '#00C853', light: '#FFFFFF' },
-    file: { dark: '#FF5722', light: '#FFFFFF' }
+    file: { dark: '#FF5722', light: '#FFFFFF' },
+    ar: { dark: '#FF00FF', light: '#FFFFFF' }
 };
 
 class QRCodeApp {
@@ -206,6 +207,28 @@ class QRCodeApp {
             });
         });
 
+        // AR platform change listener
+        document.getElementById('arPlatform').addEventListener('change', (e) => {
+            const platform = e.target.value;
+            const markerRow = document.getElementById('arMarkerRow');
+            const wallRow = document.getElementById('ar8thWallRow');
+            const customRow = document.getElementById('arCustomRow');
+
+            // Hide all rows first
+            markerRow.classList.add('hidden');
+            wallRow.classList.add('hidden');
+            customRow.classList.add('hidden');
+
+            // Show appropriate row based on platform
+            if (platform === 'arjs') {
+                markerRow.classList.remove('hidden');
+            } else if (platform === '8thwall') {
+                wallRow.classList.remove('hidden');
+            } else if (platform === 'custom' || platform === 'webxr') {
+                customRow.classList.remove('hidden');
+            }
+        });
+
         document.getElementById('downloadPNG').addEventListener('click', () => {
             if (this.currentQRCode) {
                 const downloadOptions = { ...this.currentQRCode.options };
@@ -300,6 +323,14 @@ class QRCodeApp {
         // Add file metadata if available
         if (type === 'file' && this.currentFileMetadata) {
             options.fileMetadata = this.currentFileMetadata;
+        }
+
+        // Add AR experience name if available
+        if (type === 'ar') {
+            const experienceName = document.getElementById('arExperienceName').value.trim();
+            if (experienceName) {
+                options.arExperienceName = experienceName;
+            }
         }
         
         try {
@@ -610,6 +641,51 @@ class QRCodeApp {
                 }
 
                 return fileUploadData.url;
+
+            case 'ar':
+                const arPlatform = document.getElementById('arPlatform').value;
+                let arUrl = '';
+
+                // Validation and URL building based on platform
+                if (arPlatform === 'arjs') {
+                    const markerUrl = document.getElementById('arMarkerUrl').value.trim();
+                    if (!markerUrl) {
+                        this.uiController.showNotification('Marker/Model URL is required', 'error');
+                        return null;
+                    }
+                    // AR.js format - link directly to the marker/model URL
+                    // Users can host their own AR.js viewer or use this URL directly
+                    arUrl = markerUrl;
+                } else if (arPlatform === '8thwall') {
+                    const wallUrl = document.getElementById('ar8thWallUrl').value.trim();
+                    if (!wallUrl) {
+                        this.uiController.showNotification('8th Wall Experience URL is required', 'error');
+                        return null;
+                    }
+                    if (!wallUrl.match(/^https?:\/\//)) {
+                        arUrl = 'https://' + wallUrl;
+                    } else {
+                        arUrl = wallUrl;
+                    }
+                } else if (arPlatform === 'custom' || arPlatform === 'webxr') {
+                    const customUrl = document.getElementById('arCustomUrl').value.trim();
+                    if (!customUrl) {
+                        this.uiController.showNotification('Custom AR URL is required', 'error');
+                        return null;
+                    }
+                    if (!customUrl.match(/^https?:\/\//)) {
+                        arUrl = 'https://' + customUrl;
+                    } else {
+                        arUrl = customUrl;
+                    }
+                }
+
+                if (!arUrl) {
+                    this.uiController.showNotification('Please provide a valid AR URL', 'error');
+                    return null;
+                }
+
+                return arUrl;
 
             default:
                 return null;
@@ -1050,6 +1126,28 @@ class QRCodeApp {
                 // Note: Cannot restore actual file, only the URL
                 this.uiController.showNotification('File URL restored. Original file cannot be restored.', 'info');
                 break;
+
+            case 'ar':
+                // Parse the AR URL to determine platform and restore fields
+                document.getElementById('arExperienceName').value = ''; // Reset name field
+
+                // Simple heuristic to detect platform
+                if (data.includes('8thwall.app')) {
+                    document.getElementById('arPlatform').value = '8thwall';
+                    document.getElementById('ar8thWallUrl').value = data;
+                    // Trigger platform change to show correct fields
+                    document.getElementById('arPlatform').dispatchEvent(new Event('change'));
+                } else if (data.includes('.patt') || data.includes('.glb') || data.includes('.gltf')) {
+                    document.getElementById('arPlatform').value = 'arjs';
+                    document.getElementById('arMarkerUrl').value = data;
+                    document.getElementById('arPlatform').dispatchEvent(new Event('change'));
+                } else {
+                    // Default to custom URL
+                    document.getElementById('arPlatform').value = 'custom';
+                    document.getElementById('arCustomUrl').value = data;
+                    document.getElementById('arPlatform').dispatchEvent(new Event('change'));
+                }
+                break;
         }
     }
 
@@ -1244,7 +1342,7 @@ class QRCodeApp {
     updateAutoFrameOptions() {
         const qrType = document.getElementById('qrType').value;
         const container = document.querySelector('.frame-options-container');
-        
+
         // Define which types have dual options
         const dualOptionTypes = {
             'url': { generic: 'GO TO WEBSITE', contextual: 'Show URL' },
@@ -1257,7 +1355,8 @@ class QRCodeApp {
             'youtube': { generic: 'WATCH ON YOUTUBE', contextual: 'Show Channel/Video Info' },
             'upi': { generic: 'PAY WITH UPI', contextual: 'Show Payee Name' },
             'attendance': { generic: 'CHECK IN', contextual: 'Show Location' },
-            'file': { generic: 'DOWNLOAD FILE', contextual: 'Show Filename' }
+            'file': { generic: 'DOWNLOAD FILE', contextual: 'Show Filename' },
+            'ar': { generic: 'VIEW IN AR', contextual: 'Show Experience Name' }
         };
         
         const singleOptionTypes = {

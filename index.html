@@ -120,6 +120,10 @@
                         <img src="assets/ui-icons/file.svg" alt="File icon" class="type-icon">
                         <span>File Upload</span>
                     </button>
+                    <button class="type-menu-item" data-type="ar">
+                        <img src="assets/ui-icons/ar.svg" alt="AR icon" class="type-icon">
+                        <span>AR Experience</span>
+                    </button>
                 </nav>
                 <select id="qrType" class="mobile-type-select">
                     <option value="text">Plain Text</option>
@@ -136,6 +140,7 @@
                     <option value="upi">UPI Payment</option>
                     <option value="attendance">Attendance</option>
                     <option value="file">File Upload</option>
+                    <option value="ar">AR Experience</option>
                 </select>
             </div>
 
@@ -484,6 +489,53 @@
                             <div class="form-row">
                                 <div class="form-col-full">
                                     <div class="form-hint">After uploading, a QR code will be generated that links to your file. Anyone with the QR code can download the file.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group hidden" data-type="ar">
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label for="arPlatform" class="form-label">AR Platform <span style="color: var(--error-color);">*</span></label>
+                                    <select id="arPlatform" class="form-select">
+                                        <option value="arjs">AR.js (Marker-based)</option>
+                                        <option value="webxr">WebXR (Custom URL)</option>
+                                        <option value="8thwall">8th Wall</option>
+                                        <option value="custom">Custom URL</option>
+                                    </select>
+                                    <div class="form-hint">Choose the AR platform for your experience.</div>
+                                </div>
+                            </div>
+
+                            <div class="form-row" id="arMarkerRow">
+                                <div class="form-col-full">
+                                    <label for="arMarkerUrl" class="form-label">Marker/Model URL <span style="color: var(--error-color);">*</span></label>
+                                    <input type="url" id="arMarkerUrl" class="form-input" placeholder="https://example.com/marker.patt or model.glb">
+                                    <div class="form-hint">URL to AR marker pattern file (.patt) or 3D model (.glb, .gltf).</div>
+                                </div>
+                            </div>
+
+                            <div class="form-row hidden" id="ar8thWallRow">
+                                <div class="form-col-full">
+                                    <label for="ar8thWallUrl" class="form-label">8th Wall Experience URL <span style="color: var(--error-color);">*</span></label>
+                                    <input type="url" id="ar8thWallUrl" class="form-input" placeholder="https://yourproject.8thwall.app/experience-name">
+                                    <div class="form-hint">Full URL to your published 8th Wall AR experience.</div>
+                                </div>
+                            </div>
+
+                            <div class="form-row hidden" id="arCustomRow">
+                                <div class="form-col-full">
+                                    <label for="arCustomUrl" class="form-label">Custom AR URL <span style="color: var(--error-color);">*</span></label>
+                                    <input type="url" id="arCustomUrl" class="form-input" placeholder="https://your-ar-experience.com">
+                                    <div class="form-hint">Direct URL to your AR web experience.</div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col-full">
+                                    <label for="arExperienceName" class="form-label">Experience Name (Optional)</label>
+                                    <input type="text" id="arExperienceName" class="form-input" placeholder="My AR Experience">
+                                    <div class="form-hint">Give your AR experience a descriptive name for the frame (if used).</div>
                                 </div>
                             </div>
                         </div>

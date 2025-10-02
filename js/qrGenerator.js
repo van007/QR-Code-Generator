@@ -579,7 +579,8 @@ export class QRGenerator {
                     'event': 'ADD TO CALENDAR',
                     'upi': 'PAY WITH UPI',
                     'attendance': 'CHECK IN',
-                    'file': 'DOWNLOAD FILE'
+                    'file': 'DOWNLOAD FILE',
+                    'ar': 'VIEW IN AR'
                 };
                 frameText = frameTextMap[options.qrType] || 'SCAN ME';
             }
@@ -796,6 +797,48 @@ export class QRGenerator {
                     }
                     return 'DOWNLOAD FILE';
 
+                case 'ar':
+                    // Check if experience name is provided in options
+                    if (options && options.arExperienceName) {
+                        return this.truncateText(options.arExperienceName, 30);
+                    }
+
+                    // Try to extract meaningful info from URL
+                    try {
+                        const url = new URL(data);
+
+                        // 8th Wall - extract project/experience name
+                        if (url.hostname.includes('8thwall.app')) {
+                            const pathParts = url.pathname.split('/').filter(p => p);
+                            if (pathParts.length > 0) {
+                                // Use last path segment as experience name
+                                return this.truncateText(pathParts[pathParts.length - 1].replace(/-/g, ' '), 30);
+                            }
+                        }
+
+                        // AR.js or generic - try to extract filename
+                        if (data.includes('.patt')) {
+                            const filename = url.pathname.split('/').pop();
+                            if (filename) {
+                                return this.truncateText(filename.replace('.patt', ''), 30);
+                            }
+                        } else if (data.includes('.glb') || data.includes('.gltf')) {
+                            const filename = url.pathname.split('/').pop();
+                            if (filename) {
+                                return this.truncateText(filename.replace(/\.(glb|gltf)$/, ''), 30);
+                            }
+                        }
+
+                        // Fallback to hostname if nothing else works
+                        if (url.hostname && url.hostname !== 'localhost') {
+                            return this.truncateText(url.hostname, 30);
+                        }
+                    } catch (e) {
+                        // URL parsing failed
+                    }
+
+                    return 'VIEW IN AR';
+
                 default:
                     // Return generic text for other types
                     return 'SCAN ME';
@@ -814,7 +857,8 @@ export class QRGenerator {
                 'youtube': 'WATCH ON YOUTUBE',
                 'upi': 'PAY WITH UPI',
                 'attendance': 'CHECK IN',
-                'file': 'DOWNLOAD FILE'
+                'file': 'DOWNLOAD FILE',
+                'ar': 'VIEW IN AR'
             };
             return fallbackMap[qrType] || 'SCAN ME';
         }
