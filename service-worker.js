@@ -1,4 +1,4 @@
-const CACHE_NAME = 'qr-generator-v0.1.2';
+const CACHE_NAME = 'qr-generator-v0.1.3';
 const urlsToCache = [
   '/',
   '/index.html',
