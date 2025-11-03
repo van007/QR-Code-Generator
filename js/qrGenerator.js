@@ -177,6 +177,11 @@ export class QRGenerator {
         let vcard = 'BEGIN:VCARD\nVERSION:3.0\n';
         
         if (contact.name) {
+            // Split name into first and last for the N field (required by vCard 3.0)
+            const nameParts = contact.name.trim().split(' ');
+            const lastName = nameParts.length > 1 ? nameParts.pop() : contact.name;
+            const firstName = nameParts.join(' ') || '';
+            vcard += `N:${lastName};${firstName};;;\n`;
             vcard += `FN:${contact.name}\n`;
         }
         if (contact.org) {
@@ -191,8 +196,10 @@ export class QRGenerator {
         if (contact.email) {
             vcard += `EMAIL:${contact.email}\n`;
         }
-        if (contact.url) {
-            vcard += `URL:${contact.url}\n`;
+        if (contact.urls && contact.urls.length > 0) {
+            contact.urls.forEach(website => {
+                vcard += `URL;TYPE=${website.type}:${website.url}\n`;
+            });
         }
         
         const hasAddress = contact.street || contact.city || contact.state || contact.zip || contact.country;
