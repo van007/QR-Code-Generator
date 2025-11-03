@@ -486,7 +486,17 @@ class QRCodeApp {
                 const vcardZip = document.getElementById('vcardZip').value.trim();
                 const vcardState = document.getElementById('vcardState').value.trim();
                 const vcardCountry = document.getElementById('vcardCountry').value.trim();
-                const vcardWebsite = document.getElementById('vcardWebsite').value.trim();
+
+                // Collect all 3 website fields
+                const vcardWebsitePersonal = document.getElementById('vcardWebsitePersonal').value.trim();
+                const vcardWebsiteWork = document.getElementById('vcardWebsiteWork').value.trim();
+                const vcardWebsiteSocial = document.getElementById('vcardWebsiteSocial').value.trim();
+
+                // Build array of non-empty websites with types
+                const websites = [];
+                if (vcardWebsitePersonal) websites.push({type: 'personal', url: vcardWebsitePersonal});
+                if (vcardWebsiteWork) websites.push({type: 'work', url: vcardWebsiteWork});
+                if (vcardWebsiteSocial) websites.push({type: 'social', url: vcardWebsiteSocial});
 
                 const vcardData = {
                     name: vcardName,
@@ -499,7 +509,7 @@ class QRCodeApp {
                     state: vcardState,
                     zip: vcardZip,
                     country: vcardCountry,
-                    url: vcardWebsite
+                    urls: websites
                 };
 
                 return this.qrGenerator.generateVCard(vcardData);
@@ -1041,7 +1051,24 @@ class QRCodeApp {
                 document.getElementById('vcardZip').value = vcardData.zip || '';
                 document.getElementById('vcardState').value = vcardData.state || '';
                 document.getElementById('vcardCountry').value = vcardData.country || '';
-                document.getElementById('vcardWebsite').value = vcardData.url || '';
+
+                // Clear all website fields first
+                document.getElementById('vcardWebsitePersonal').value = '';
+                document.getElementById('vcardWebsiteWork').value = '';
+                document.getElementById('vcardWebsiteSocial').value = '';
+
+                // Restore from urls array
+                if (vcardData.urls && vcardData.urls.length > 0) {
+                    vcardData.urls.forEach(website => {
+                        if (website.type === 'personal') {
+                            document.getElementById('vcardWebsitePersonal').value = website.url;
+                        } else if (website.type === 'work') {
+                            document.getElementById('vcardWebsiteWork').value = website.url;
+                        } else if (website.type === 'social') {
+                            document.getElementById('vcardWebsiteSocial').value = website.url;
+                        }
+                    });
+                }
                 break;
 
             case 'event':
@@ -1185,6 +1212,7 @@ class QRCodeApp {
 
     parseVCardString(vcardString) {
         const result = {};
+        result.urls = [];  // Initialize urls array for multiple websites
         const lines = vcardString.split('\n');
 
         lines.forEach(line => {
@@ -1198,8 +1226,17 @@ class QRCodeApp {
                 result.org = line.substring(4);
             } else if (line.startsWith('TITLE:')) {
                 result.title = line.substring(6);
-            } else if (line.startsWith('URL:')) {
-                result.url = line.substring(4);
+            } else if (line.startsWith('URL;TYPE=') || line.startsWith('URL:')) {
+                // Parse URL with optional TYPE parameter
+                if (line.startsWith('URL;TYPE=')) {
+                    const typeMatch = line.match(/URL;TYPE=(\w+):(.+)/);
+                    if (typeMatch) {
+                        result.urls.push({type: typeMatch[1], url: typeMatch[2]});
+                    }
+                } else {
+                    // Plain URL without type (backward compatibility)
+                    result.urls.push({type: '', url: line.substring(4)});
+                }
             } else if (line.startsWith('ADR:')) {
                 const addrParts = line.substring(4).split(';');
                 if (addrParts.length >= 7) {

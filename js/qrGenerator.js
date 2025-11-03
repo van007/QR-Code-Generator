@@ -196,8 +196,10 @@ export class QRGenerator {
         if (contact.email) {
             vcard += `EMAIL:${contact.email}\n`;
         }
-        if (contact.url) {
-            vcard += `URL:${contact.url}\n`;
+        if (contact.urls && contact.urls.length > 0) {
+            contact.urls.forEach(website => {
+                vcard += `URL;TYPE=${website.type}:${website.url}\n`;
+            });
         }
         
         const hasAddress = contact.street || contact.city || contact.state || contact.zip || contact.country;
