@@ -177,6 +177,11 @@ export class QRGenerator {
         let vcard = 'BEGIN:VCARD\nVERSION:3.0\n';
         
         if (contact.name) {
+            // Split name into first and last for the N field (required by vCard 3.0)
+            const nameParts = contact.name.trim().split(' ');
+            const lastName = nameParts.length > 1 ? nameParts.pop() : contact.name;
+            const firstName = nameParts.join(' ') || '';
+            vcard += `N:${lastName};${firstName};;;\n`;
             vcard += `FN:${contact.name}\n`;
         }
         if (contact.org) {
